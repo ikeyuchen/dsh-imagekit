@@ -39,11 +39,9 @@
 
 ### 修复
 
-- **不再依赖用户安装 7-Zip**：解压按归档类型分层兜底——
-  `.zip` 由 Node 内置 zlib 解压（零外部依赖）；`.7z` 依次尝试「本机 7-Zip → Windows 自带 `tar.exe`
-  （先用 `--version` 探测是否带 liblzma，**部分 Win10 的 tar 不带，会跳过**）→ 按需下载官方 7-Zip 精简版
-  `7zr.exe`（26.06，600 KB，sha256 固定）」。`image_setup(action="status")` 新增 `extractor:` 行显示当前解压器。
-  已实测：真实 1.9GB 引擎 7z（tar 与 7zr 两条路径）、46MB 上游 zip（tar 与内置解压），Win10 缺 liblzma 的场景由 7zr 兜底。
+- **解压只保留两个方案，不再依赖用户装 7-Zip**：`.zip` 用 Node 内置 zlib 解压；`.7z` 用插件自带的官方 7-Zip 精简版
+  `7zr.exe`（首次按需下载 600 KB，sha256 固定校验，落在 `<installRoot>/tools/`）。`image_setup(action="status")` 的
+  `extractor:` 行显示当前解压器。已实测真实 1.9GB 引擎 7z 与 46MB 上游 zip。
 - **升级/修复语义拆开**：以前「缺文件」也会被当成「可升级」，界面上会出现「可升级 → 和已装版本一模一样」；
   现在版本不同才显示「升级」，只缺文件显示「修复」，并去掉文案里的箭头。
 - **进度条在多个文件时会回退**：`writeProgress` 里 `...extra` 覆盖了累计字节数，换文件时把进度强制写成 0，

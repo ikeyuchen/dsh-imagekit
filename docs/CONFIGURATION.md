@@ -59,7 +59,7 @@
 
 同类可覆盖项：`IMAGEKIT_INSTALL_ROOT`（整体换安装根）。
 
-解压相关的环境变量（排障用）：`SEVEN_ZIP` 指定 7z 可执行文件；`IMAGEKIT_EXTRACTOR=7z|tar|zip|7zr` 强制只用其中一种。
+解压相关的环境变量（排障用）：`IMAGEKIT_EXTRACTOR=7zr|zip` 强制只用一种；`SEVEN_ZIP` 指定一个 7z 可执行文件（跳过内置 7zr，仅特殊环境需要）。默认：`.zip` → Node 内置解压，`.7z` → `<installRoot>/tools/7zr.exe`（缺失时按需下载并校验 sha256）。
 
 默认顺序（按归档类型）：
 - `.zip`：插件内置 Node zlib 解压（零外部依赖）；

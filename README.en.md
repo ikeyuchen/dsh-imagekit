@@ -110,11 +110,9 @@ Both packs can be installed together and share the VAE and text encoder; pick `l
 
 - Windows 10/11 x64 (engine and upscale binaries are Win64 only for now).
 - ComfyUI and Qwen-Image weights are not bundled; check what is missing with `image_setup(action="status")`.
-- **No 7-Zip install needed** — extraction falls back in three layers:
-  1. a local 7-Zip (`SEVEN_ZIP` or the usual install paths);
-  2. the `tar.exe` that ships with Windows (works for 7z on Win11 and on Win10 builds that include liblzma — **some Win10 builds ship tar without liblzma**, those are skipped automatically);
-  3. otherwise the plugin **downloads the official 7-Zip standalone `7zr.exe` (600 KB, pinned sha256)** into `<installRoot>/tools/` and uses that.
-  Upscale `.zip` packages are unpacked by the plugin itself with Node's built-in zlib — no external program at all.
+- **No 7-Zip install needed**: `.7z` engine packages are unpacked by the plugin's bundled official 7-Zip standalone `7zr.exe`
+  (downloaded once, 600 KB, pinned sha256); `.zip` upscale packages are unpacked with Node's built-in zlib — both work out of the box
+  regardless of what archiver the system has.
 - The generation gateway (default `127.0.0.1:8189`) is a separate service you provide and point the plugin at.
 
 ## Docs

@@ -108,11 +108,8 @@ Qwen-Image 2.1 **原生约 2K**（官方示例 `2048×2048`、40 步；官方比
 
 - Windows 10/11 x64（引擎与超分二进制目前只有 Win64 版本）。
 - ComfyUI 与 Qwen-Image 权重不随包分发，缺什么用 `image_setup(action="status")` 查。
-- **不需要额外装 7-Zip**，插件按三层兜底解压：
-  1. 本机 7-Zip（`SEVEN_ZIP` 或常见安装路径）；
-  2. Windows 自带的 `tar.exe`（Win11 / 带 liblzma 的 Win10 能解 7z；**Win10 有版本缺 liblzma**，会被自动跳过）；
-  3. 都不行时**自动下载官方 7-Zip 精简版 `7zr.exe`（600 KB，sha256 固定校验）**到 `<installRoot>/tools/` 再解压。
-  放大引擎的 `.zip` 包由插件用 Node 内置 zlib 解压，**完全不依赖任何外部程序**。
+- **不需要装 7-Zip**：引擎包（`.7z`）用插件内置的官方 7-Zip 精简版 `7zr.exe`（首次自动下载 600 KB，sha256 固定校验），
+  放大引擎包（`.zip`）用 Node 内置 zlib 解压——两种格式都开箱可用，不依赖系统里有没有解压软件。
 - 生图网关（默认 `127.0.0.1:8189`）是独立服务：代码不在本包内，也不随模型/引擎一起下载，需自备网关目录；
   备好后插件会在生图前**自动拉起**（隐藏进程，日志在网关目录同级的 `logs/`），不用手动开服务。
   目录用 `IMAGEKIT_GATEWAY_DIR` 或 `$DSH_HOME/imagekit/local.json` 的 `gatewayDir` 指定，地址改 `gatewayUrl`

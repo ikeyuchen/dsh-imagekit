@@ -26,7 +26,7 @@ models.manifest.json
   路由只是调用已注册的 `image_setup` / `perf` 工具，不另开写盘路径；
   鉴权与同源校验由宿主的 `connection` 服务负责，插件不自行放行跨站请求。
 - 下载器：HTTP Range 续传 + `.partial` 临时文件，校验大小/sha256 后 rename；目标路径先 `assertWithin(installRoot)`；
-  删除必须 `confirm=<component>`；归档用 `checkPath`/`checkPaths` 判断解压完成；解压按类型选：
+  删除必须 `confirm=<component>`；归档用 `checkPath`/`checkPaths` 判断解压完成；解压只有两条路径：`.zip` 用 Node zlib 内置解压，`.7z` 用内置官方 7zr（`<installRoot>/tools/7zr.exe`，缺失时按需下载并校验 sha256；`IMAGEKIT_EXTRACTOR=7zr|zip` 可强制），
 `.zip` 用 Node zlib 内置解压，`.7z` 依次试「本机 7-Zip → Windows tar（需 `--version` 含 liblzma）→ 按需下载的官方 7zr.exe」，
 `IMAGEKIT_EXTRACTOR=7z|tar|zip|7zr` 可强制，解压后按 `extractRename` 改名、
   整合包用 `extractGlobs` 只取需要的目录再 `extractMove`；已存在目录不覆盖。
