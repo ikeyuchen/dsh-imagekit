@@ -168,7 +168,7 @@ try {
     path.join(layout.stateDir, 'state.json'),
     JSON.stringify({ installed: { models: { version: '2.1', pack: 'core' } } }, null, 2)
   )
-  const skipped = await call({ action: 'upgrade', component: 'models' })
+  const skipped = await call({ action: 'upgrade', component: 'models', pack: 'core' })
   assert(skipped.ok && /already at v2\.1/.test(skipped.message), `upgrade skip failed: ${skipped.message}`)
   console.log('✓ upgrade skips when already at manifest version')
 
@@ -180,7 +180,7 @@ try {
   )
   let failure = null
   try {
-    await call({ action: 'upgrade', component: 'models' })
+    await call({ action: 'upgrade', component: 'models', pack: 'core' })
   } catch (error) {
     failure = error
   }
@@ -221,6 +221,110 @@ try {
   const wrongComponent = await call({ action: 'delete', component: 'engine', pack: 'core', confirm: 'engine' })
   assert(wrongComponent.ok === false && /only applies to component=models/.test(wrongComponent.message), 'pack on non-models component should be refused')
   console.log('✓ delete pack=<name> removes only that pack\'s exclusive files, keeps files still needed')
+
+  // 5c. 多包组件必须显式指定 pack（避免 8G 显卡默默下 12G 的 core）；单包组件仍可省略
+  const noPack = await call({ action: 'install', component: 'models' })
+  assert(noPack.ok === false && /requires pack=<name>/.test(noPack.message), `models without pack should be refused: ${noPack.message}`)
+  assert(/core（12G 显存/.test(noPack.message) && /lowvram（8G 显存/.test(noPack.message), `refusal should list packs: ${noPack.message}`)
+  // 单包组件（upscale）允许省略 pack：这里故意指向不可达源，只为确认它不会报「requires pack」
+  let upscaleNoPack
+  try {
+    upscaleNoPack = await call({ action: 'install', component: 'upscale', pack: 'core' })
+  } catch (error) {
+    upscaleNoPack = { ok: false, message: String(error?.message ?? error) }
+  }
+  assert(!/requires pack=<name>/.test(upscaleNoPack.message), 'single-pack component should not demand a pack')
+  console.log('✓ models install/upgrade requires an explicit pack; single-pack components do not')
+
+  // 5d. 下载进度：字节级 progress 写进 job.json，status 暴露 percent / 已下载 / 当前文件
+  const { createServer: progCreateServer } = await import('node:http')
+  const { createHash: progCreateHash } = await import('node:crypto')
+  const progPayload = Buffer.alloc(3 * 1024 * 1024)
+  for (let i = 0; i < progPayload.length; i += 1) progPayload[i] = i % 251
+  const progSha = progCreateHash('sha256').update(progPayload).digest('hex')
+  const progServer = progCreateServer((req, res) => {
+    const m = /bytes=(\d+)-/.exec(String(req.headers.range ?? ''))
+    const start = m ? Number(m[1]) : 0
+    const slice = progPayload.subarray(start)
+    res.writeHead(start > 0 ? 206 : 200, {
+      'content-type': 'application/octet-stream',
+      'content-length': String(slice.length),
+      ...(start > 0 ? { 'content-range': `bytes ${start}-${progPayload.length - 1}/${progPayload.length}` } : {}),
+    })
+    // 分 4 块慢发，制造可观测的中间进度
+    let offset = 0
+    const step = 256 * 1024
+    const timer = setInterval(() => {
+      if (offset >= slice.length) { clearInterval(timer); res.end(); return }
+      res.write(slice.subarray(offset, offset + step))
+      offset += step
+    }, 120)
+    req.on('close', () => clearInterval(timer))
+  })
+  await new Promise((resolve) => progServer.listen(0, '127.0.0.1', resolve))
+  const progRoot = path.join(root, 'progress-plugin')
+  const progInstall = path.join(root, 'progress-install')
+  mkdirSync(path.join(progInstall, '.imagekit'), { recursive: true })
+  mkdirSync(progRoot, { recursive: true })
+  writeFileSync(path.join(progRoot, 'models.manifest.json'), JSON.stringify({
+    manifestVersion: 1,
+    components: {
+      models: {
+        label: 'models',
+        packs: {
+          prog: {
+            label: 'progress fixture', version: '9.9', vram: '8G',
+            files: [{
+              label: 'progress model', path: 'diffusion_models/progress.safetensors',
+              sources: { huggingface: `http://127.0.0.1:${progServer.address().port}/progress.safetensors` },
+              sizeBytes: progPayload.length, sha256: progSha,
+            }],
+          },
+        },
+      },
+    },
+  }, null, 2))
+  const progTools = []
+  registerSetupTools(
+    { tools: { register: (t) => progTools.push(t), get: () => undefined }, effect: () => {}, inject: undefined },
+    {
+      pluginRoot: progRoot,
+      config: {
+        installRoot: progInstall,
+        modelsRoot: path.join(progInstall, 'models'),
+        engineRoot: path.join(progInstall, 'engine', 'ComfyUI_windows_portable'),
+        upscaleEnginesRoot: path.join(progInstall, 'upscale-engines', 'engines'),
+        modelSource: 'huggingface',
+        keepVersions: '1',
+      },
+    }
+  )
+  const progTool = progTools[0]
+  const progJobFile = path.join(progInstall, '.imagekit', 'job.json')
+  const installPromise = progTool.execute({ action: 'install', component: 'models', pack: 'prog' }, {})
+  const samples = []
+  for (let i = 0; i < 120; i += 1) {
+    await new Promise((r) => setTimeout(r, 80))
+    if (!existsSync(progJobFile)) continue
+    const raw = JSON.parse(readFileSync(progJobFile, 'utf8'))
+    const status = await progTool.execute({ action: 'status' }, {})
+    samples.push({ job: status.job ?? raw, raw })
+    if (status.job?.state === 'done') break
+  }
+  await installPromise
+  const percents = samples.map((s) => s.job?.percent).filter((v) => Number.isFinite(v))
+  const midProgress = percents.filter((p) => p > 0 && p < 100)
+  assert(midProgress.length > 0, `download progress never showed an intermediate percent: ${percents.join(',')}`)
+  assert(percents.every((p, i) => i === 0 || p >= percents[i - 1]), `progress went backwards: ${percents.join(',')}`)
+  assert(percents[percents.length - 1] === 100, `final percent should be 100, got ${percents[percents.length - 1]}`)
+  const withBytes = samples.find((s) => Number(s.job?.writtenBytes) > 0 && Number(s.job?.totalBytes) === progPayload.length)
+  assert(withBytes !== undefined, 'job should carry writtenBytes/totalBytes')
+  const withFile = samples.find((s) => s.job?.fileLabel === 'progress model')
+  assert(withFile !== undefined, 'job should name the file being downloaded')
+  assert(samples[samples.length - 1].job?.state === 'done', 'job should end in state=done')
+  progServer.closeAllConnections?.()
+  progServer.close()
+  console.log('✓ download progress: byte-level percent grows monotonically and ends at 100%')
 
   // 6. 目录级回滚：engine 整目录、upscale 已解压目录
   const statePath = path.join(layout.stateDir, 'state.json')
@@ -513,4 +617,4 @@ try {
   rmSync(root, { recursive: true, force: true })
 }
 
-console.log("\n✓ image_setup 集成检查 9 组全部通过")
+console.log("\n✓ image_setup 集成检查 11 组全部通过")

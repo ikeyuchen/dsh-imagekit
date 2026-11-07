@@ -37,6 +37,9 @@ models.manifest.json
   - 成功后写 `state.json.installed[component] = {version, engineVersion, pack, at}`，并按 `keepVersions` 清理旧备份；
   - 失败时 `restoreBackup` 把 payload 移回原位，保留原版本记录后再报错。
 - 旧版本删除复用 `delete` 动作：带 `backup=<id>` 时只删对应备份（校验 id 字符集、必须落在备份根内、junction 拒绝）。
+- 下载进度写进 `job.json`：`writtenBytes` / `totalBytes` / `fileLabel` / `fileIndex`（下载器回调，**800ms 节流**），
+  `status` 再算出 `percent` 给设置页画进度条；设置页下载期间 1s 轮询一次。
+- 多包组件（models）必须显式 `pack=<name>`，不再默认取清单第一个包（否则 8G 显卡会默默下 12G 的包）。
 - 模型包按包删除：`delete component=models pack=<name> confirm=models` 只删该包**独有**文件；
   与其他「完整安装」的包共用的文件保留并在结果里列出，删完重算 `state.json` 记录的是哪个包。
 

@@ -18,7 +18,7 @@
 | 需要什么 | 怎么查 | 怎么装 |
 |---|---|---|
 | 生图引擎（ComfyUI） | `comfy(action="status")` | 设置页组件区，或 `image_setup(action="install", component="engine")` |
-| 生图模型权重 | `image_setup(action="status")` | `image_setup(action="install", component="models", pack="core")` |
+| 生图模型权重 | `image_setup(action="status")` | `image_setup(action="install", component="models", pack="core")`（**pack 必填**，按显存选） |
 | 放大引擎 | `image_setup(action="status")` | `image_setup(action="install", component="upscale")` |
 | 显存够不够 | `preflight` / `perf(action="snapshot")` | 12G 用默认档；8G 装 `lowvram` 包 |
 
@@ -128,6 +128,7 @@ image_upscale(input_path="<outputDir>/xxx.png")
 ## 3.5 组件与旧版本
 
 - 装什么：设置页「组件与手动下载」逐个点「下载 / 安装」；模型包可**叠加**（core + fast 能同时装）。
+- 下载时会显示**进度条**（百分比 + 已下载/总量 + 当前文件名），下载完自动转入解压
 - 装错了：每个已安装的模型包右侧有「删除该包」，**只删这个包独有的文件**；与其他已安装包共用的文件会保留（删了会连带坏掉那些包），删完会列出保留项。
 - 全部清空：组件行的「删除」会删掉 `models` 下所有模型文件，确认框里会明确提示。
 - 命令行等价写法：`image_setup(action="delete", component="models", pack="core", confirm="models")`。

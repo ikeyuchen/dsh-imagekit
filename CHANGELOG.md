@@ -12,6 +12,13 @@
 - **文档补齐上手路径**：安装方式分为「DSH 添加插件（包名 `dsh-imagekit`，npm 官方源）」「命令行 `dsh plugin add`」「源码」三种；
   新增「首次使用：装完还要下模型」一节，按显存给出选包对照表，并把设置页路径与组件下载顺序写清。
 
+### 新增（续）
+
+- **下载进度条**：设置页下载组件时显示百分比、已下载/总量与当前文件名，下载完自动转「解压中」；
+  `job.json` 记录字节级进度（800ms 节流写盘），`image_setup(action="status")` 的 `job.percent` 同步暴露。
+- **模型包必须显式指定**：`image_setup(action="install"|"upgrade", component="models")` 不带 `pack` 会报错并列出
+  各包（显存 / 体积），不再默默取清单第一个包（`core`，12G）——避免 8G 显卡误下 8.7GB 的错误编码器。
+
 ### 修复
 
 - **CI**：`ci.yml` 此前从不安装依赖，`doc-drift` 与 `image_setup` 自测在 `ERR_MODULE_NOT_FOUND` 上失败；
