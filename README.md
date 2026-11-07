@@ -6,20 +6,25 @@
 
 [简体中文](README.md) · [English](README.en.md)
 
+[![npm](https://img.shields.io/npm/v/dsh-imagekit?color=4b6fff)](https://www.npmjs.com/package/dsh-imagekit)
 [![license](https://img.shields.io/badge/license-MIT-4b6fff)](LICENSE)
 [![platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-lightgrey)](#要求)
 [![dsh](https://img.shields.io/badge/dsh-0.2.x-6c5ce7)](package.json)
 
 ## 安装
 
-在插件市场搜索 **`dsh-imagekit`** 安装，或从源码：
+在插件市场搜索 **`dsh-imagekit`** 安装，或直接用 npm：
+
+```bash
+dsh plugin --profile web add dsh-imagekit
+```
+
+从源码开发时：
 
 ```bash
 git clone https://github.com/ikeyuchen/dsh-imagekit.git
 dsh plugin --profile web add ./dsh-imagekit
 ```
-
-> npm 尚未发布；发布后可直接 `dsh plugin --profile web add dsh-imagekit`。
 
 ## 能力
 

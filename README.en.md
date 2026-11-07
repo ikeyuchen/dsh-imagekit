@@ -6,20 +6,25 @@
 
 [简体中文](README.md) · **English**
 
+[![npm](https://img.shields.io/npm/v/dsh-imagekit?color=4b6fff)](https://www.npmjs.com/package/dsh-imagekit)
 [![license](https://img.shields.io/badge/license-MIT-4b6fff)](LICENSE)
 [![platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-lightgrey)](#requirements)
 [![dsh](https://img.shields.io/badge/dsh-0.2.x-6c5ce7)](package.json)
 
 ## Install
 
-Search **`dsh-imagekit`** in the plugin marketplace, or install from source:
+Search **`dsh-imagekit`** in the plugin marketplace, or install from npm:
+
+```bash
+dsh plugin --profile web add dsh-imagekit
+```
+
+For source development:
 
 ```bash
 git clone https://github.com/ikeyuchen/dsh-imagekit.git
 dsh plugin --profile web add ./dsh-imagekit
 ```
-
-> Not published to npm yet. Once published: `dsh plugin --profile web add dsh-imagekit`.
 
 ## Features
 
