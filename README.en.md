@@ -66,23 +66,24 @@ Toolsets are registered by profile: `minimal` 5 / `standard` 13 / `all` 15 (defa
 
 ## Size and upscaling
 
-Qwen-Image 2.1 is **native ~2K** (official examples use `2048×2048` at 40 steps; official aspect table runs from `2048²` to `2752×1536`).
-This plugin defaults to `1056×1056` as a **speed preset** (~1/4 of the native area), not the model's native size.
+Qwen-Image 2.1 is **native ~2K** (official examples use `2048×2048` at 40 steps; the official aspect table runs from `2048²` to `2752×1536`).
+The three tiers trade speed for quality — they are not model limits:
 
-| You want | How | Measured on 12 GB VRAM |
-|---|---|---|
-| Drafts, prompt iteration | `tier="draft"` (1056², 6 steps) | ~10–30 s |
-| Fast output (default) | `tier="standard"` (1056², 25 steps) | ~20 s |
-| **Final image with real detail** | explicit `width=2048, height=2048` (40 steps) | **~170 s** |
-| Wide / tall | official ratios, e.g. `2752×1536`, `1536×2752` | same class as 2048² |
-| Cheap 2K | generate 1056², then `image_upscale` ×2 | ~5 s → 2112² |
+| Tier | Size / steps | Measured on 12 GB VRAM | Good for |
+|---|---|---|---|
+| `draft` | 1056² / 6 steps | ~10–30 s | composition and prompt iteration |
+| `standard` (default) | **1536² / 25 steps** | **~50 s** | everyday output |
+| `quality` | 2048² / 40 steps | ~170 s | final images, maximum detail |
+| custom | official ratios, e.g. `2752×1536` | same class as 2048² | wide / tall posters |
 
-- **Native 2K generation ≠ upscaling a small image**: at 2048² the fur, materials and text are computed by the model; upscaling a 1056² render only sharpens what is already there and cannot invent missing detail.
-- **Do not exceed the native range**: 2560² measured 226 s (25 steps) and tends to repeat structures — generate 2048² and upscale if you need more.
+- **Upscaling really does add detail — very visibly for anime/illustration**: line art and flat colour blocks improve a lot with `cugan_pro` (models-pro); photos get cleaner fur and material, but no detail the model never generated.
+- **Cheap 2K**: `draft` 1056² → `image_upscale` ×2 in ~5 s → 2112², handy before committing to a final render.
+- **Do not exceed the native range**: 2560² measured 226 s (25 steps) and tends to repeat structures — generate 2048² and upscale instead.
 - On 8 GB VRAM stay at or below 1536² with a `lowvram` pack; width/height must be multiples of 32.
 
 ![1:1 detail: native 2048² vs 1056² upscaled ×2](docs/native-vs-upscale.webp)
 
+## Models
 ## Models
 
 | Pack | Steps | Notes |
@@ -113,7 +114,7 @@ Both packs can be installed together and share the VAE and text encoder; pick `l
 
 ## Docs
 
-[Usage](docs/USAGE.md) · [Prompting](docs/PROMPTS.md) · [Model & params](docs/MODEL.md) · [Configuration](docs/CONFIGURATION.md) · [Engine versions](docs/ENGINE-VERSIONS.md) · [Architecture](docs/ARCHITECTURE.md) · [Implementation](docs/IMPLEMENTATION.md) · [Icon](docs/ICON.md) · [Releasing](docs/RELEASING.md) · [Roadmap](docs/ROADMAP.md) · [Changelog](CHANGELOG.md) · [Third-party](THIRD_PARTY.md)
+[Usage](docs/USAGE.md) · [Prompt handbook](docs/PROMPTS.md) · [Model & params](docs/MODEL.md) · [Configuration](docs/CONFIGURATION.md) · [Engine versions](docs/ENGINE-VERSIONS.md) · [Architecture](docs/ARCHITECTURE.md) · [Implementation](docs/IMPLEMENTATION.md) · [Icon](docs/ICON.md) · [Releasing](docs/RELEASING.md) · [Roadmap](docs/ROADMAP.md) · [Changelog](CHANGELOG.md) · [Third-party](THIRD_PARTY.md)
 
 ## License
 

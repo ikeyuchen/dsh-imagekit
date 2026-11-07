@@ -22,6 +22,8 @@ npm test           # 全套 8 套离线自测，改完必跑
 - 所有下载必须带 `sizeBytes` + `sha256`，无校验的归档不得进入清单。
 - 新增数据文件时同步 `package.json` 的 `files` 与 `THIRD_PARTY.md` 的来源表。
 - 默认下载源保持官方（`huggingface` / GitHub Releases）；第三方镜像只作显式选项。
+- 提示词文档分两层、不要互相复制：内置简洁版是 DSH 技能 `qwen-image-cookbook`（不在本仓库）；
+  仓库只放探索版 `docs/PROMPTS.md`。新增提示词文件放 `docs/`，命名 `PROMPTS*.md`。
 
 ## 改工具签名或描述时
 

@@ -4,14 +4,14 @@
     "steps": 6,
     "width": 1056,
     "height": 1056,
-    "description": "快速草稿：viggle turbo 6步 LoRA，最快出图；画质为草稿级（细节/文字弱），用于构图与提示词迭代"
+    "description": "快速草稿：viggle turbo 6 步 LoRA，最快出图；画质为草稿级（细节/文字弱），用于构图与提示词迭代，满意后再用 standard / quality"
   },
   "standard": {
     "template": "qwen_image_2_1_t2i",
     "steps": 25,
-    "width": 1056,
-    "height": 1056,
-    "description": "快速出图：25 步 × 1056²（约为模型原生 2K 的 1/4 面积，热引擎约 20 秒）；要成片细节请显式用 2048² 或随后放大"
+    "width": 1536,
+    "height": 1536,
+    "description": "默认出图：25 步 × 1536²（约为模型原生 2K 的 6 成面积，热引擎约 50 秒）；要最实细节用 quality（2048²），要快用 draft（1056²）"
   },
   "quality": {
     "template": "qwen_image_2_1_t2i",
