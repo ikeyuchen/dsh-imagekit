@@ -46,13 +46,15 @@ dsh plugin --profile web add ./dsh-imagekit
 ## 示例
 
 <p align="center">
-  <img src="docs/demo-photo.webp" width="240" alt="写实：窗台上的橘白猫">
+  <img src="docs/demo-photo.webp" width="300" alt="写实：窗台上的橘白猫">
   &nbsp;&nbsp;
-  <img src="docs/demo-anime.webp" width="240" alt="二次元：樱花树下的狐耳少女">
+  <img src="docs/demo-anime.webp" width="300" alt="二次元：樱花树下的狐耳少女">
+  <br>
+  <img src="docs/demo-text.webp" width="300" alt="文字：中文海报">
   &nbsp;&nbsp;
-  <img src="docs/demo-text.webp" width="240" alt="文字：中文海报">
+  <img src="docs/demo-scene.webp" width="300" alt="场景：黄昏山谷湖泊">
 </p>
-<p align="center"><em>写实 · 二次元 · 文字，均由本插件本地生成（1056² / 1056² / 1024²，提示词见 <a href="docs/USAGE.md">用法</a>）</em></p>
+<p align="center"><em>写实 · 二次元 · 文字 · 场景，均由本插件本地生成（1056² / 1056² / 1024² / 1056²，提示词见 <a href="docs/USAGE.md">用法</a>）</em></p>
 
 ## 要求
 

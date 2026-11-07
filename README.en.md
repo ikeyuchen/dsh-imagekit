@@ -46,13 +46,15 @@ Both packs can be installed together and share the VAE and text encoder; pick `l
 ## Samples
 
 <p align="center">
-  <img src="docs/demo-photo.webp" width="240" alt="Photoreal: orange cat on a windowsill">
+  <img src="docs/demo-photo.webp" width="300" alt="Photoreal: orange cat on a windowsill">
   &nbsp;&nbsp;
-  <img src="docs/demo-anime.webp" width="240" alt="Anime: fox-eared girl under cherry blossoms">
+  <img src="docs/demo-anime.webp" width="300" alt="Anime: fox-eared girl under cherry blossoms">
+  <br>
+  <img src="docs/demo-text.webp" width="300" alt="Text: Chinese poster">
   &nbsp;&nbsp;
-  <img src="docs/demo-text.webp" width="240" alt="Text: Chinese poster">
+  <img src="docs/demo-scene.webp" width="300" alt="Scene: mountain lake at dusk">
 </p>
-<p align="center"><em>Photoreal · anime · text, all generated locally by this plugin (1056² / 1056² / 1024²; prompts in <a href="docs/USAGE.md">usage</a>)</em></p>
+<p align="center"><em>Photoreal · anime · text · scene, all generated locally by this plugin (1056² / 1056² / 1024² / 1056²; prompts in <a href="docs/USAGE.md">usage</a>)</em></p>
 
 ## Requirements
 

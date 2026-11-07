@@ -49,6 +49,10 @@ anime illustration of a silver-haired girl with fox ears standing under a cherry
 cel-shaded, clean line art, vibrant colors, detailed eyes, upper body, soft rim light,
 petals drifting in the air, shallow depth of field
 
+# 场景：1056² / 25 步
+电影感风景照片：黄昏时分的山谷湖泊，湖面倒映着粉紫色晚霞与连绵远山，前景是长满野花的草坡，
+薄雾贴着水面，光线柔和通透，广角构图，色彩层次丰富，画面干净通透。
+
 # 文字：1024² / 40 步（含文字建议 40 步）
 一张方形极简科技海报：深藏青纯色背景，画面中央是发光的青蓝色渐变圆环与细网格线，
 柔和光晕向外扩散，顶部大号白色粗体标题写着「图像生成工坊」，标题下方一行浅灰细体小字
