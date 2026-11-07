@@ -35,7 +35,7 @@
 - [x] **环境检测内聚**：`dsh-plugin-guard` 的 `env_probe`（本机能力体检）+ `preflight`（显存/共享显存/端口/引擎/CPU 闸门）迁入 `lib/env/`，独立的环境检测插件不再是依赖
 - [x] **去本机化（路径层）**：默认路径收敛到 `lib/paths.js` 单点派生，`IMAGEKIT_INSTALL_ROOT` /
   `IMAGEKIT_GATEWAY_DIR` / `IMAGEKIT_GATEWAY_LOG_DIR` 可覆盖；`doc-drift` 的 H 规则禁止其他文件写死盘符路径
-- [ ] **去本机化（剩余）**：网关仍是独立服务，需自行准备兼容网关；7-Zip 探测路径固定；
+- [ ] **去本机化（剩余）**：网关仍是独立服务（插件会自动拉起，但网关代码需自备）；7-Zip 探测路径固定；
   非 Windows 平台的引擎/超分二进制尚未验证
 - [x] **生成图片统一目录**：`Config.outputDir`（默认 `<installRoot>/outputs`），不传 `save_to` 时整批落盘、同名不覆盖；放大落 `outputs/upscale`
 - [x] **GitHub 下载兜底**：直链失败回退 Releases API（可选 `GITHUB_TOKEN`）

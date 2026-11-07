@@ -65,7 +65,10 @@ dsh plugin --profile web add ./dsh-imagekit
 
 - Windows 10/11 x64（引擎与超分二进制目前只有 Win64 版本）。
 - ComfyUI、Qwen-Image 权重、7-Zip 均不随包分发，缺什么用 `image_setup(action="status")` 查。
-- 生图网关（默认 `127.0.0.1:8189`）是独立服务，需自备并在设置里指向它。
+- 生图网关（默认 `127.0.0.1:8189`）是独立服务：代码不在本包内，也不随模型/引擎一起下载，需自备网关目录；
+  备好后插件会在生图前**自动拉起**（隐藏进程，日志在网关目录同级的 `logs/`），不用手动开服务。
+  目录用 `IMAGEKIT_GATEWAY_DIR` 或 `$DSH_HOME/imagekit/local.json` 的 `gatewayDir` 指定，地址改 `gatewayUrl`
+  （这两项不在设置页表单里）。网关跑在 ComfyUI 引擎自带的 python 上，所以引擎升级时插件会先停它、换包后补装依赖。
 
 ## 文档
 
