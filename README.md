@@ -107,7 +107,8 @@ Qwen-Image 2.1 **原生约 2K**（官方示例 `2048×2048`、40 步；官方比
 ## 要求
 
 - Windows 10/11 x64（引擎与超分二进制目前只有 Win64 版本）。
-- ComfyUI、Qwen-Image 权重、7-Zip 均不随包分发，缺什么用 `image_setup(action="status")` 查。
+- ComfyUI 与 Qwen-Image 权重不随包分发，缺什么用 `image_setup(action="status")` 查。
+- **不需要额外装 7-Zip**：优先用本机 7-Zip，没有则自动用 Windows 10/11 自带的 `tar.exe` 解 7z/zip（Linux/macOS 需 p7zip 或 bsdtar）。
 - 生图网关（默认 `127.0.0.1:8189`）是独立服务：代码不在本包内，也不随模型/引擎一起下载，需自备网关目录；
   备好后插件会在生图前**自动拉起**（隐藏进程，日志在网关目录同级的 `logs/`），不用手动开服务。
   目录用 `IMAGEKIT_GATEWAY_DIR` 或 `$DSH_HOME/imagekit/local.json` 的 `gatewayDir` 指定，地址改 `gatewayUrl`

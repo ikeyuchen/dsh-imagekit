@@ -24,7 +24,7 @@
 | **waifu2x ncnn-vulkan** | MIT · https://github.com/nihui/waifu2x-ncnn-vulkan | 同上（20250915，35,497,352 B，sha256 `7425be94…`）。权重来自 nagadomi/waifu2x（MIT） |
 | **Real-ESRGAN ncnn-vulkan** | BSD-3-Clause · https://github.com/xinntao/Real-ESRGAN | 同上（v0.2.5.0 / 20220424，45,474,481 B，sha256 `abc02804…`）；权重随官方仓库以 BSD-3 发布 |
 | **RealSR ncnn-vulkan** | MIT · https://github.com/nihui/realsr-ncnn-vulkan | 同上（20220728，64,005,701 B，sha256 `db77ca82…`）；真实照片保守修复 |
-| **7-Zip** | LGPL-2.1+（含 unRAR 限制）· https://www.7-zip.org | 仅调用用户本机已安装的 `7z.exe` 解压归档，不随包分发 |
+| **7-Zip**（可选） | LGPL-2.1+（含 unRAR 限制）· https://www.7-zip.org | 若本机已安装则优先调用；**未安装也能工作**——回退到 Windows 10/11 自带的 `tar.exe`（bsdtar / libarchive，能读 7z 与 zip），或 Linux/macOS 的 bsdtar。不随包分发 |
 | **Pillow / numpy** | MIT-CMU / BSD-3-Clause | 由用户 Python 环境安装，`scripts/pixels.py` 运行时导入 |
 
 第三方下载源：`huggingface.co`（默认）、`hf-mirror.com`、`modelscope`、`SourceForge`、GitHub Releases。

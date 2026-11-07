@@ -109,7 +109,8 @@ Both packs can be installed together and share the VAE and text encoder; pick `l
 ## Requirements
 
 - Windows 10/11 x64 (engine and upscale binaries are Win64 only for now).
-- ComfyUI, Qwen-Image weights and 7-Zip are not bundled; check what is missing with `image_setup(action="status")`.
+- ComfyUI and Qwen-Image weights are not bundled; check what is missing with `image_setup(action="status")`.
+- **No 7-Zip install needed**: the plugin uses a local 7-Zip if present, otherwise the built-in `tar.exe` that ships with Windows 10/11 (it reads both 7z and zip); Linux/macOS need p7zip or bsdtar.
 - The generation gateway (default `127.0.0.1:8189`) is a separate service you provide and point the plugin at.
 
 ## Docs

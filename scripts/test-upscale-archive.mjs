@@ -35,6 +35,18 @@ function find7z() {
 }
 
 /** 当外部样本不可用时，现场造一个形状一致的最小归档。 */
+function buildZipFixture(outFile) {
+  const sevenZip = find7z()
+  if (!sevenZip) return false
+  const stage = path.join(root, 'zipfixture', 'realcugan-ncnn-vulkan-20220728-windows')
+  mkdirSync(stage, { recursive: true })
+  writeFileSync(path.join(stage, 'realcugan-ncnn-vulkan.exe'), 'stub')
+  mkdirSync(path.join(stage, 'models-se'), { recursive: true })
+  writeFileSync(path.join(stage, 'models-se', 'up2x-no-denoise.param'), 'stub')
+  execFileSync(sevenZip, ['a', '-tzip', outFile, '.'], { cwd: path.join(root, 'zipfixture'), stdio: 'ignore' })
+  return existsSync(outFile)
+}
+
 function buildFixtureArchive(outFile) {
   const sevenZip = find7z()
   if (!sevenZip) return false
@@ -140,5 +152,128 @@ const afterRow = after.components.find((c) => c.component === 'upscale')
 assert(afterRow.missing === 0, `expected 0 missing after install, got ${afterRow.missing}`)
 console.log('✓ glob extraction + engine dir move + checkPaths status')
 
+console.log('✓ 7z 路径（自动选择）')
+
+// —— 没有 7-Zip 的机器：Windows 自带 tar（libarchive）必须同样能解 ——
+// 1) 强制 tar 解 .7z（选择性解压 --include 也要能用）
+process.env.IMAGEKIT_EXTRACTOR = 'tar'
+const tarRoot = path.join(root, 'tar-case')
+const tarPlugin = path.join(root, 'tar-plugin')
+const tarUpscale = path.join(tarRoot, 'upscale-engines', 'engines')
+const tarArchive = path.join(tarUpscale, 'archives', 'test.7z')
+mkdirSync(path.dirname(tarArchive), { recursive: true })
+copyFileSync(archive, tarArchive)
+mkdirSync(tarPlugin, { recursive: true })
+writeFileSync(
+  path.join(tarPlugin, 'models.manifest.json'),
+  JSON.stringify(
+    {
+      manifestVersion: 1,
+      components: {
+        upscale: {
+          label: 'test',
+          packs: {
+            core: {
+              version: '20220424',
+              files: [
+                {
+                  label: 'engine test archive',
+                  path: 'archives/test.7z',
+                  sources: { official: 'http://127.0.0.1:1/none.7z' },
+                  sizeBytes: null,
+                  sha256: null,
+                  extractTo: '.',
+                  extractGlobs: ['*/realesrgan-ncnn-vulkan/*'],
+                  extractMove: ['realesrgan-ncnn-vulkan'],
+                  checkPaths: ['realesrgan-ncnn-vulkan/realesrgan-ncnn-vulkan.exe'],
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+    null,
+    2
+  )
+)
+const tarTools = []
+registerSetupTools(
+  { tools: { register: (tool) => tarTools.push(tool) }, effect: () => {}, inject: undefined },
+  {
+    pluginRoot: tarPlugin,
+    config: {
+      installRoot: tarRoot,
+      upscaleEnginesRoot: tarUpscale,
+      modelsRoot: path.join(tarRoot, 'models'),
+      engineRoot: path.join(tarRoot, 'engine', 'ComfyUI_windows_portable'),
+    },
+  }
+)
+const tarStatus = await tarTools[0].execute({ action: 'status' }, {})
+assert(/extractor: tar/.test(tarStatus.message), `status should report the tar extractor: ${tarStatus.message.split('\n').slice(-4).join(' | ')}`)
+const tarInstalled = await tarTools[0].execute({ action: 'install', component: 'upscale' }, {})
+assert(tarInstalled.ok, `tar-only install failed: ${tarInstalled.message}`)
+assert(
+  existsSync(path.join(tarUpscale, 'realesrgan-ncnn-vulkan', 'realesrgan-ncnn-vulkan.exe')),
+  'tar fallback did not extract the 7z glob target'
+)
+console.log('✓ 没有 7-Zip 时用系统 tar 解 .7z + 选择性解压')
+
+// 2) 强制 tar 解 .zip（放大引擎实际是 zip + extractRename）
+const zipArchive = path.join(tarUpscale, 'archives', 'engine.zip')
+assert(buildZipFixture(zipArchive), 'could not build zip fixture')
+const zipManifest = path.join(tarPlugin, 'models.manifest.json')
+writeFileSync(
+  zipManifest,
+  JSON.stringify(
+    {
+      manifestVersion: 1,
+      components: {
+        upscale: {
+          label: 'test',
+          packs: {
+            core: {
+              version: '20220728',
+              files: [
+                {
+                  label: 'zip engine',
+                  path: 'archives/engine.zip',
+                  sources: { official: 'http://127.0.0.1:1/none.zip' },
+                  sizeBytes: null,
+                  sha256: null,
+                  extractTo: '.',
+                  extractRename: { from: 'realcugan-ncnn-vulkan-20220728-windows', to: 'realcugan-ncnn-vulkan', overwrite: true },
+                  checkPaths: ['realcugan-ncnn-vulkan/realcugan-ncnn-vulkan.exe'],
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+    null,
+    2
+  )
+)
+const zipTools = []
+registerSetupTools(
+  { tools: { register: (tool) => zipTools.push(tool) }, effect: () => {}, inject: undefined },
+  {
+    pluginRoot: tarPlugin,
+    config: {
+      installRoot: tarRoot,
+      upscaleEnginesRoot: tarUpscale,
+      modelsRoot: path.join(tarRoot, 'models'),
+      engineRoot: path.join(tarRoot, 'engine', 'ComfyUI_windows_portable'),
+    },
+  }
+)
+const zipInstalled = await zipTools[0].execute({ action: 'install', component: 'upscale' }, {})
+assert(zipInstalled.ok, `tar zip install failed: ${zipInstalled.message}`)
+assert(existsSync(path.join(tarUpscale, 'realcugan-ncnn-vulkan', 'realcugan-ncnn-vulkan.exe')), 'tar fallback did not extract+rename the zip')
+console.log('✓ 没有 7-Zip 时用系统 tar 解 .zip 并重命名目录')
+delete process.env.IMAGEKIT_EXTRACTOR
+
 rmSync(root, { recursive: true, force: true })
-console.log('\n✓ 整合包选择性解压自测通过')
+console.log('\n✓ 整合包选择性解压自测通过（7z 与 tar 兜底均验证）')

@@ -26,7 +26,8 @@ models.manifest.json
   路由只是调用已注册的 `image_setup` / `perf` 工具，不另开写盘路径；
   鉴权与同源校验由宿主的 `connection` 服务负责，插件不自行放行跨站请求。
 - 下载器：HTTP Range 续传 + `.partial` 临时文件，校验大小/sha256 后 rename；目标路径先 `assertWithin(installRoot)`；
-  删除必须 `confirm=<component>`；归档用 `checkPath`/`checkPaths` 判断解压完成，系统 7z 解压后按 `extractRename` 改名、
+  删除必须 `confirm=<component>`；归档用 `checkPath`/`checkPaths` 判断解压完成；解压器按「7-Zip → Windows 自带 tar（bsdtar）→ PATH tar」依次尝试
+（`IMAGEKIT_EXTRACTOR=7z|tar` 可强制），解压后按 `extractRename` 改名、
   整合包用 `extractGlobs` 只取需要的目录再 `extractMove`；已存在目录不覆盖。
 - `lib/upscale.js` 的 `image_upscale` 预设覆盖上游官方 Real-CUGAN / waifu2x / Real-ESRGAN / RealSR 模型；四个引擎包由 `image_setup` 从上游官方 release 下载并校验 sha256。
 - 升级与备份（`lib/setup.js`）：
