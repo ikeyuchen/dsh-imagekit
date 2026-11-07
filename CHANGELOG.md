@@ -30,6 +30,11 @@
   实测本机直连 `github.com` 8/8 连接超时、`api.github.com` 资产直链 4.0 MB/s、`ghfast.top` 3.55 MB/s 且 sha256 一致——
   代理只提升**可达性**、不加速；下载器仍优先走官方 API 资产直链，代理排在第三位（仅代理 `github.com` 链接，`api.github.com` 不被代理）。
 
+- **模型包可单独删除**：设置页每个已安装的模型包新增「删除该包」，只清掉该包独有文件（与其他已安装包共用的保留并列出），
+  装错高显存包时不必再整个 `models` 全删；命令行对应 `image_setup(action="delete", component="models", pack="<name>", confirm="models")`。
+- **CI 修复**：`ci.yml` 此前从不安装依赖，`doc-drift` / `image_setup` 自测在 `ERR_MODULE_NOT_FOUND` 上失败；现钉住宿主侧
+  peer 依赖为 devDependencies、补装 7-Zip，并让 CI 跑完整 `npm test`。
+
 ### 修复
 
 - 引擎升级前先停止引擎、升级后重启并按磁盘 `comfyui_version.py` 校验版本，避免运行中的进程占用目录导致备份 `rename` 失败；

@@ -2,7 +2,7 @@
 /**
  * 版本备份/回滚/旧版本删除自测（离线，不启动宿主、不联网）。
  *
- *   npm i --no-save @deepseek-ai/dsh-tools
+ *   npm install   # 宿主侧 peer 依赖已钉在 devDependencies
  *   node scripts/test-backup.mjs
  *
  * 覆盖：引擎整目录备份/回滚、模型单文件备份、旧版本列表、按 keepVersions 清理、

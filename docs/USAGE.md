@@ -118,6 +118,9 @@ image_upscale(input_path="<outputDir>/xxx.png")
 ## 3.5 组件与旧版本
 
 - 装什么：设置页「组件与手动下载」逐个点「下载 / 安装」；模型包可**叠加**（core + fast 能同时装）。
+- 装错了：每个已安装的模型包右侧有「删除该包」，**只删这个包独有的文件**；与其他已安装包共用的文件会保留（删了会连带坏掉那些包），删完会列出保留项。
+- 全部清空：组件行的「删除」会删掉 `models` 下所有模型文件，确认框里会明确提示。
+- 命令行等价写法：`image_setup(action="delete", component="models", pack="core", confirm="models")`。
 - 装完自检：`image_setup(action="verify", component="models")`，校验大小与 sha256。
 - 升级：组件行出现「可升级 → vX」时点「升级」；旧内容先 `rename` 进
   `<installRoot>/.imagekit/backups/<component>/<版本>-<时间戳>/`，失败自动回滚。
@@ -142,9 +145,9 @@ image_upscale(input_path="<outputDir>/xxx.png")
 
 | 档位 | 工具数 | 常驻 token（tokA / tokB） | 含什么 |
 |---|---|---|---|
-| `minimal` | 5 | **991 / 1156** | `image_generate`、`image_upscale`、`image_service_status`、`image_setup`、`comfy` |
-| `standard`（默认） | 13 | **2371 / 2764** | minimal + `image_generate_raw`、`image_workflow_inspect` + 像素处理 5 件 + `perf` |
-| `all` | 15 | **2671 / 3123** | standard + `env_probe`、`preflight` |
+| `minimal` | 5 | **1012 / 1181** | `image_generate`、`image_upscale`、`image_service_status`、`image_setup`、`comfy` |
+| `standard`（默认） | 13 | **2392 / 2789** | minimal + `image_generate_raw`、`image_workflow_inspect` + 像素处理 5 件 + `perf` |
+| `all` | 15 | **2692 / 3148** | standard + `env_probe`、`preflight` |
 
 口径（估算）：宿主只发 `name + description + parameters`（outputSchema 不发）+ 提示段；tokA = CJK 1.6 / ASCII 4.2 字每 token，tokB 为保守值。
 随时可复测：`npm run tokens`。

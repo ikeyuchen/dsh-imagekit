@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   check:
@@ -13,8 +14,17 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
+      # devDependencies 里钉了宿主侧 peer 包（@deepseek-ai/dsh-tools、schemastery）：
+      # doc-drift / image_setup 自测要 import lib/index.js 与 lib/setup.js，缺了它们会直接 ERR_MODULE_NOT_FOUND
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      # 放大引擎自测需要用 7z 现造归档；缺 7z 时该用例会自行 skip
+      - name: Install 7-Zip
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq p7zip-full
       - name: Static package check
         run: npm run check
+      - name: Offline test suite
+        run: npm test
       - name: Docs drift check
         run: npm run test:docs
       - name: npm pack dry-run

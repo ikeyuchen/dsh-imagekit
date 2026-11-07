@@ -2,7 +2,7 @@
 /**
  * image_setup 工具集成自测（离线，不联网、不启动宿主）。
  *
- *   npm i --no-save @deepseek-ai/dsh-tools
+ *   npm install   # 宿主侧 peer 依赖已钉在 devDependencies
  *   node scripts/test-setup-tool.mjs
  *
  * 用真实 models.manifest.json 与临时目录，覆盖：
@@ -190,6 +190,37 @@ try {
   assert(listBackups(layout, 'models').length === 0, 'rollback left a backup behind')
   assert(readStateFile().installed.models.version === '2.0', 'rollback changed the recorded version')
   console.log('✓ failed upgrade rolls back file + keeps recorded version')
+
+  // 5b. 按包删除：装错一个 12G 包不该逼用户全删；只删独有文件，共用文件留给仍安装的包
+  //     core 与 lowvram 共用 diffusion+vae，文本编码器不同（int8 vs w4a8）
+  const w4a8 = path.join(layout.modelsRoot, 'text_encoders', 'qwen3vl_8b_w4a8.safetensors')
+  writeFileSync(w4a8, Buffer.alloc(16))
+  const packedBefore = await call({ action: 'status' })
+  const packsBefore = Object.fromEntries(packedBefore.components.find((c) => c.component === 'models').packs.map((x) => [x.name, x]))
+  assert(packsBefore.core?.installed === true && packsBefore.lowvram?.installed === true, 'core+lowvram fixture should both be installed')
+
+  const packDeleted = await call({ action: 'delete', component: 'models', pack: 'core', confirm: 'models' })
+  assert(packDeleted.ok, `pack delete failed: ${packDeleted.message}`)
+  assert(!existsSync(path.join(layout.modelsRoot, 'text_encoders', 'qwen3vl_8b_int8_convrot.safetensors')), 'core-only file should be deleted')
+  assert(existsSync(path.join(layout.modelsRoot, 'diffusion_models', 'qwen_image_2.1_int8_convrot.safetensors')), 'diffusion shared with lowvram must be kept')
+  assert(existsSync(w4a8), 'lowvram-only file must be kept')
+  assert(/kept 2 file\(s\) shared with installed packs lowvram/.test(packDeleted.message), `shared-file note missing: ${packDeleted.message}`)
+  const packedAfter = await call({ action: 'status' })
+  const packsAfter = Object.fromEntries(packedAfter.components.find((c) => c.component === 'models').packs.map((x) => [x.name, x]))
+  assert(packsAfter.core?.installed === false && packsAfter.lowvram?.installed === true, 'pack status should follow disk after delete')
+
+  // 只剩一个包时，删它应把独有+共用全部清掉
+  rmSync(w4a8, { force: true })
+  const solo = await call({ action: 'delete', component: 'models', pack: 'core', confirm: 'models' })
+  assert(solo.ok, `solo pack delete failed: ${solo.message}`)
+  assert(!existsSync(path.join(layout.modelsRoot, 'diffusion_models', 'qwen_image_2.1_int8_convrot.safetensors')), 'solo pack delete should remove shared files too')
+
+  // 边界：未知包 / pack 用在非 models 组件
+  const unknownPack = await call({ action: 'delete', component: 'models', pack: 'nope', confirm: 'models' })
+  assert(unknownPack.ok === false && /unknown pack/.test(unknownPack.message), 'unknown pack should be refused by name')
+  const wrongComponent = await call({ action: 'delete', component: 'engine', pack: 'core', confirm: 'engine' })
+  assert(wrongComponent.ok === false && /only applies to component=models/.test(wrongComponent.message), 'pack on non-models component should be refused')
+  console.log('✓ delete pack=<name> removes only that pack\'s exclusive files, keeps files still needed')
 
   // 6. 目录级回滚：engine 整目录、upscale 已解压目录
   const statePath = path.join(layout.stateDir, 'state.json')
@@ -482,4 +513,4 @@ try {
   rmSync(root, { recursive: true, force: true })
 }
 
-console.log("\n✓ image_setup 集成检查 8 组全部通过")
+console.log("\n✓ image_setup 集成检查 9 组全部通过")

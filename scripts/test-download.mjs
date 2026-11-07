@@ -2,7 +2,7 @@
 /**
  * 下载器自测（离线）：本地 HTTP 服务 + 断点续传 + 大小/哈希校验。
  *
- *   npm i --no-save @deepseek-ai/dsh-tools
+ *   npm install   # 宿主侧 peer 依赖已钉在 devDependencies
  *   node scripts/test-download.mjs
  *
  * 覆盖：全新下载、已存在跳过、.partial 续传、sha256 不符拒绝、大小不符拒绝。

@@ -22,7 +22,7 @@ apply(ctx, config)
 | `all` | 15 | standard + env_probe + preflight |
 
 分档依据：插件只有**生图**与**放大**两个功能，其余工具只在这两件事之外才用得到；
-常驻成本见 `npm run tokens`（991 / 2371 / 2671 tokA）。
+常驻成本见 `npm run tokens`（1012 / 2392 / 2692 tokA）。
 
 所有工具共享同一个 Cordis 插件生命周期和系统提示段；`image_generate` 的引擎兜底可以直接从
 `ctx.tools.get("comfy")` 找到同包引擎工具，不再依赖外部插件是否存在。
