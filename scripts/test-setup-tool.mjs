@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const ENGINE_VERSION = JSON.parse(readFileSync(path.join(ROOT, 'models.manifest.json'), 'utf8')).components.engine.packs.default.version
-const { backupTargets, listBackups, registerSetupTools } = await import(new URL('../lib/setup.js', import.meta.url).href)
+const { backupTargets, listBackups, pickUrl, registerSetupTools } = await import(new URL('../lib/setup.js', import.meta.url).href)
 
 const root = mkdtempSync(path.join(tmpdir(), 'imagekit-tool-'))
 const layout = {
@@ -47,8 +47,17 @@ const assert = (condition, message) => {
 const readStateFile = () => JSON.parse(readFileSync(path.join(layout.stateDir, 'state.json'), 'utf8'))
 
 const registered = []
+/** 假的 comfy 引擎工具：记录 setup 升级时对引擎的停/起调用。 */
+let comfyTool = null
 registerSetupTools(
-  { tools: { register: (tool) => registered.push(tool) }, effect: () => {}, inject: undefined },
+  {
+    tools: {
+      register: (tool) => registered.push(tool),
+      get: (name) => (name === 'comfy' ? comfyTool ?? undefined : undefined),
+    },
+    effect: () => {},
+    inject: undefined,
+  },
   { pluginRoot: ROOT, config }
 )
 const tool = registered[0]
@@ -71,8 +80,18 @@ try {
   writeFileSync(path.join(layout.modelsRoot, 'vae', 'qwen_image_2.1_vae_bf16.safetensors'), Buffer.alloc(16))
   writeFileSync(path.join(layout.modelsRoot, 'text_encoders', 'qwen3vl_8b_int8_convrot.safetensors'), Buffer.alloc(16))
 
-  mkdirSync(path.join(layout.upscaleRoot, 'realcugan-ncnn-vulkan', 'models-pro'), { recursive: true })
-  mkdirSync(path.join(layout.upscaleRoot, 'realesrgan-ncnn-vulkan', 'models'), { recursive: true })
+  // 放大引擎夹具：四包的上游官方 exe + 一个模型文件（对应新清单的 checkPaths）
+  const upscaleFixtures = [
+    ['realcugan-ncnn-vulkan', 'realcugan-ncnn-vulkan.exe', ['models-se', 'up2x-denoise1x.param']],
+    ['waifu2x-ncnn-vulkan', 'waifu2x-ncnn-vulkan.exe', ['models-upconv_7_anime_style_art_rgb', 'noise0_scale2.0x_model.param']],
+    ['realesrgan-ncnn-vulkan', 'realesrgan-ncnn-vulkan.exe', ['models', 'realesrgan-x4plus.param']],
+    ['realsr-ncnn-vulkan', 'realsr-ncnn-vulkan.exe', ['models-DF2K', 'x4.param']],
+  ]
+  for (const [dir, exe, [modelDir, modelFile]] of upscaleFixtures) {
+    mkdirSync(path.join(layout.upscaleRoot, dir, modelDir), { recursive: true })
+    writeFileSync(path.join(layout.upscaleRoot, dir, exe), 'stub')
+    writeFileSync(path.join(layout.upscaleRoot, dir, modelDir, modelFile), 'stub')
+  }
 
   // 1. status：版本字段齐全，引擎版本来自 comfyui_version.py
   const status = await call({ action: 'status' })
@@ -83,9 +102,11 @@ try {
   assert(row('engine').installedVersion === '0.39.0', 'engine installedVersion should come from comfyui_version.py')
   assert(row('models').targetVersion === '2.1', 'models targetVersion should be 2.1')
   assert(row('models').missing === 0, 'models should report no missing manifest files')
-  assert(row('upscale').targetVersion === '3.142.01', 'upscale targetVersion should be 3.142.01')
-  // 首次 status 应把探测版本落盘（adopted），下次 status 以记录为准
-  assert(readStateFile().installed.engine.version === ENGINE_VERSION, 'engine version was not adopted')
+  assert(row('upscale').targetVersion === '20220728+20250915+20220424', `upscale targetVersion should match manifest, got ${row('upscale').targetVersion}`)
+  // 首次 status 应把探测版本落盘（adopted）：引擎必须记磁盘真实版本（0.39.0），
+  // 不能记成清单目标（0.44.0）——记错就会让「已安装 0.39.0 + 清单 0.44.0」永远显示可升级又升不动。
+  assert(readStateFile().installed.engine.version === '0.39.0', 'engine version should adopt the detected on-disk version')
+  assert(row('engine').updateAvailable === true, 'installed 0.39.0 vs manifest target should be upgradeable')
   assert(readStateFile().installed.models.version === '2.1', 'models version was not adopted')
   latestStatus = await call({ action: 'status' })
   assert(row('models').versionSource === 'recorded', 'adopted version not used on next status')
@@ -99,6 +120,23 @@ try {
   assert(packs['lowvram-fast']?.missing === 2, 'lowvram-fast should miss turbo + w4a8')
   assert(packs.full?.missing === 4, `full should miss 4 files, got ${packs.full?.missing}`)
   console.log('✓ models expose additive packs (core/fast/lowvram/lowvram-fast/full)')
+
+  // 1c. 下载源优先级：official 缺位时自动退到自建 mirror；用户显式选官方源时不越级
+  const sourced = {
+    path: 'archives/x.zip',
+    kind: 'upscale',
+    sources: { official: 'https://github.com/up/stream/releases/download/t/x.zip', mirror: 'https://github.com/us/mirror/releases/download/t/x.zip' },
+  }
+  assert(
+    pickUrl(sourced, { upscaleSource: 'official' }) === sourced.sources.official,
+    'official source should win when the user picked it'
+  )
+  assert(
+    pickUrl({ path: 'archives/x.zip', kind: 'upscale', sources: { mirror: 'https://m/x.zip' } }, { upscaleSource: 'official' }) === 'https://m/x.zip',
+    'mirror slot should be used when the preferred source is absent'
+  )
+  assert(pickUrl(sourced, { modelPackBaseUrl: 'https://base/' }) === 'https://base/archives/x.zip', 'custom base URL should win')
+  console.log('✓ download source fallback: official → self-hosted mirror → custom base URL')
 
   // 2. defaults 只读
   const defaults = await call({ action: 'defaults' })
@@ -170,16 +208,278 @@ try {
     assert(/rolled back/.test(String(failure.message)), `${component} rollback note missing: ${failure.message}`)
   }
   assert(existsSync(path.join(layout.engineRoot, 'ComfyUI', 'main.py')), 'engine rollback missing main.py')
-  assert(existsSync(path.join(layout.upscaleRoot, 'realcugan-ncnn-vulkan', 'models-pro')), 'upscale rollback missing realcugan dir')
-  assert(existsSync(path.join(layout.upscaleRoot, 'realesrgan-ncnn-vulkan', 'models')), 'upscale rollback missing realesrgan dir')
+  assert(existsSync(path.join(layout.upscaleRoot, 'realcugan-ncnn-vulkan', 'realcugan-ncnn-vulkan.exe')), 'upscale rollback missing realcugan engine')
+  assert(existsSync(path.join(layout.upscaleRoot, 'realesrgan-ncnn-vulkan', 'realesrgan-ncnn-vulkan.exe')), 'upscale rollback missing realesrgan engine')
   assert(listBackups(layout, 'engine').length === 0, 'engine rollback left a backup')
   assert(listBackups(layout, 'upscale').length === 0, 'upscale rollback left a backup')
   const afterDirs = readStateFile()
   assert(afterDirs.installed.engine.version === '0.38.0', 'engine rollback changed recorded version')
   assert(afterDirs.installed.upscale.version === '2020.01', 'upscale rollback changed recorded version')
   console.log('✓ failed engine/upscale upgrade restores whole directories')
+
+  // 7. 引擎运行中升级：先停引擎 → 失败回滚 → 再重启。
+  //    旧行为：备份是整目录 rename，引擎跑着会 EBUSY，升级点下去直接失败。
+  const { createServer } = await import('node:http')
+  const engineServer = createServer((req, res) => {
+    if (req.url === '/system_stats') {
+      res.writeHead(200, { 'content-type': 'application/json' })
+      res.end('{"system":{"comfyui_version":"0.39.0"}}')
+      return
+    }
+    res.writeHead(404)
+    res.end()
+  })
+  await new Promise((resolve) => engineServer.listen(0, '127.0.0.1', resolve))
+  config.comfyBaseUrl = `http://127.0.0.1:${engineServer.address().port}`
+  const calls = []
+  comfyTool = {
+    execute: async (args) => {
+      calls.push(`${args.action}:${args.op ?? ''}:${args.profile ?? ''}`)
+      return { ok: true }
+    },
+  }
+  const state7 = readStateFile()
+  state7.installed.engine = { version: '0.38.0', pack: 'default' }
+  writeFileSync(statePath, JSON.stringify(state7, null, 2))
+  // 夹具：引擎目录里的用户数据（模型注册表 / 自定义节点 / 工作流库）——整目录替换不能弄丢
+  const registryYaml = path.join(layout.engineRoot, 'ComfyUI', 'extra_model_paths.yaml')
+  const poseNode = path.join(layout.engineRoot, 'ComfyUI', 'custom_nodes', 'ComfyUI-Fisher-Pose', '__init__.py')
+  const userDb = path.join(layout.engineRoot, 'ComfyUI', 'user', 'comfyui.db')
+  mkdirSync(path.dirname(poseNode), { recursive: true })
+  mkdirSync(path.dirname(userDb), { recursive: true })
+  writeFileSync(registryYaml, 'image-studio:\n    base_path: "models-fixture"\n')
+  writeFileSync(poseNode, '# pose node\n')
+  writeFileSync(userDb, 'sqlite\n')
+  let failure7 = null
+  try {
+    await call({ action: 'upgrade', component: 'engine' })
+  } catch (error) {
+    failure7 = error
+  }
+  assert(failure7 !== null, 'engine upgrade should still fail on the unreachable mirror')
+  assert(calls[0] === 'control:stop:', `engine must be stopped before backup, got ${calls[0] ?? '(none)'}`)
+  assert(calls.includes('control:start:normal'), `engine must be restarted after failure, got ${calls.join(',')}`)
+  assert(/stopping it before backup/.test(String(failure7.message)), `stop note missing: ${failure7.message}`)
+  assert(/rolled back/.test(String(failure7.message)), `engine rollback note missing: ${failure7.message}`)
+  assert(existsSync(path.join(layout.engineRoot, 'ComfyUI', 'main.py')), 'engine rollback missing main.py')
+  assert(existsSync(registryYaml), 'engine user data (extra_model_paths.yaml) lost after rollback')
+  assert(existsSync(poseNode), 'engine user data (custom_nodes) lost after rollback')
+  assert(existsSync(userDb), 'engine user data (user/comfyui.db) lost after rollback')
+  assert(!existsSync(path.join(layout.installRoot, '.staging')), 'engine upgrade left a .staging directory behind')
+  console.log('✓ engine upgrade stops the running engine, preserves user data, and restarts after rollback')
+
+  // 7b. 引擎在跑但宿主没注册 comfy 工具：明确拒绝，不假装成功（ok:false + 可执行提示）
+  comfyTool = null
+  const refused = await call({ action: 'upgrade', component: 'engine' })
+  assert(refused.ok === false, 'upgrade should refuse when the engine is running and cannot be stopped')
+  assert(/comfy tool is not registered/.test(String(refused.message)), `refusal should name the comfy tool: ${refused.message}`)
+  await new Promise((resolve) => engineServer.close(resolve))
+  console.log('✓ engine upgrade refuses when the running engine cannot be stopped')
+
+  // 8. 端到端：真 7z 归档 + 真实下载 + 停/备份/解压/保留用户数据/版本核对/重启。
+  //    用临时 pluginRoot 提供一份指向本地 HTTP 服务的清单，完全不联网。
+  const sevenZip = [process.env.SEVEN_ZIP, 'C:/Program Files/7-Zip/7z.exe', 'C:/Program Files (x86)/7-Zip/7z.exe']
+    .filter(Boolean)
+    .find((candidate) => existsSync(candidate))
+  if (sevenZip === undefined) {
+    console.log('skip: 找不到 7z，跳过引擎升级端到端用例')
+  } else {
+    const { execFileSync } = await import('node:child_process')
+    const { createHash } = await import('node:crypto')
+    const e2e = mkdtempSync(path.join(tmpdir(), 'imagekit-engine-e2e-'))
+    try {
+      // 8a. 造一个「v0.44.0」的引擎归档（内含 ComfyUI/main.py 与 comfyui_version.py）
+      const stage = path.join(e2e, 'stage')
+      const archiveEngine = path.join(stage, 'ComfyUI_windows_portable')
+      mkdirSync(path.join(archiveEngine, 'ComfyUI'), { recursive: true })
+      writeFileSync(path.join(archiveEngine, 'ComfyUI', 'main.py'), '# main v0.44.0\n')
+      writeFileSync(path.join(archiveEngine, 'ComfyUI', 'comfyui_version.py'), '__version__ = "0.44.0"\n')
+      writeFileSync(path.join(archiveEngine, 'python_embeded.exe'), 'stub')
+      execFileSync(sevenZip, ['a', path.join(e2e, 'engine.7z'), 'ComfyUI_windows_portable'], {
+        cwd: stage,
+        stdio: 'ignore',
+      })
+      const archiveBytes = readFileSync(path.join(e2e, 'engine.7z'))
+      const archiveSha = createHash('sha256').update(archiveBytes).digest('hex')
+      let served = 0
+      const mirror = createServer((req, res) => {
+        served += 1
+        const m = /bytes=(\d+)-/.exec(String(req.headers.range ?? ''))
+        const start = m ? Number(m[1]) : 0
+        const slice = archiveBytes.subarray(start)
+        res.writeHead(start > 0 ? 206 : 200, {
+          'content-type': 'application/octet-stream',
+          'content-length': String(slice.length),
+          ...(start > 0 ? { 'content-range': `bytes ${start}-${archiveBytes.length - 1}/${archiveBytes.length}` } : {}),
+        })
+        res.end(slice)
+      })
+      await new Promise((resolve) => mirror.listen(0, '127.0.0.1', resolve))
+
+      // 8b. 临时 pluginRoot + 清单（引擎指向本地 mirror；只有 engine 组件）
+      const pluginRoot2 = path.join(e2e, 'plugin')
+      mkdirSync(pluginRoot2, { recursive: true })
+      writeFileSync(
+        path.join(pluginRoot2, 'models.manifest.json'),
+        JSON.stringify(
+          {
+            manifestVersion: 1,
+            components: {
+              engine: {
+                label: 'engine',
+                packs: {
+                  default: {
+                    version: '0.44.0',
+                    files: [
+                      {
+                        label: 'portable',
+                        path: 'engine/ComfyUI_windows_portable.7z',
+                        checkPath: 'engine/ComfyUI_windows_portable/ComfyUI/main.py',
+                        sources: { official: `http://127.0.0.1:${mirror.address().port}/engine.7z` },
+                        sizeBytes: archiveBytes.length,
+                        sha256: archiveSha,
+                        extractTo: 'engine',
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+          null,
+          2
+        )
+      )
+
+      // 8c. 临时 installRoot：装好的 v0.39.0 引擎 + 用户数据 + state
+      const installRoot2 = path.join(e2e, 'ImageKit')
+      const engineRoot2 = path.join(installRoot2, 'engine', 'ComfyUI_windows_portable')
+      mkdirSync(path.join(engineRoot2, 'ComfyUI', 'custom_nodes', 'ComfyUI-Fisher-Pose'), { recursive: true })
+      mkdirSync(path.join(engineRoot2, 'ComfyUI', 'user'), { recursive: true })
+      writeFileSync(path.join(engineRoot2, 'ComfyUI', 'main.py'), '# main v0.39.0 OLD\n')
+      writeFileSync(path.join(engineRoot2, 'ComfyUI', 'comfyui_version.py'), '__version__ = "0.39.0"\n')
+      writeFileSync(path.join(engineRoot2, 'ComfyUI', 'extra_model_paths.yaml'), 'image-studio:\n    base_path: "models-fixture"\n')
+      writeFileSync(path.join(engineRoot2, 'ComfyUI', 'custom_nodes', 'ComfyUI-Fisher-Pose', '__init__.py'), '# pose\n')
+      writeFileSync(path.join(engineRoot2, 'ComfyUI', 'user', 'comfyui.db'), 'sqlite\n')
+      mkdirSync(path.join(installRoot2, '.imagekit'), { recursive: true })
+      writeFileSync(
+        path.join(installRoot2, '.imagekit', 'state.json'),
+        JSON.stringify({ installed: { engine: { version: '0.39.0', pack: 'default' } } }, null, 2)
+      )
+
+      // 8d. 第二次注册（临时 pluginRoot/config），假 comfy 工具记录停/起
+      const registered2 = []
+      const engineCalls = []
+      registerSetupTools(
+        {
+          tools: {
+            register: (tool) => registered2.push(tool),
+            get: (name) =>
+              name === 'comfy'
+                ? {
+                    execute: async (args) => {
+                      engineCalls.push(`${args.action}:${args.op}:${args.profile ?? ''}`)
+                      return { ok: true }
+                    },
+                  }
+                : undefined,
+          },
+          effect: () => {},
+          inject: undefined,
+        },
+        {
+          pluginRoot: pluginRoot2,
+          config: {
+            installRoot: installRoot2,
+            engineRoot: engineRoot2,
+            modelsRoot: path.join(installRoot2, 'models'),
+            upscaleEnginesRoot: path.join(installRoot2, 'upscale-engines', 'engines'),
+            comfyBaseUrl: `http://127.0.0.1:${mirror.address().port}`,
+            // 网关端口也指到本地服务器：升级器的「只杀本引擎目录的网关进程」保护应当跳过它
+            gatewayUrl: `http://127.0.0.1:${mirror.address().port}`,
+            modelSource: 'official',
+            keepVersions: '1',
+          },
+        }
+      )
+      // mirror 同时要响应引擎探活
+      const e2eComfy = registered2[0]
+      writeFileSync(path.join(installRoot2, '.imagekit', 'state.json'), JSON.stringify({ installed: { engine: { version: '0.39.0', pack: 'default' } } }, null, 2))
+      mirror.removeAllListeners('request')
+      mirror.on('request', (req, res) => {
+        if (req.url === '/system_stats') {
+          res.writeHead(200, { 'content-type': 'application/json' })
+          res.end('{"system":{"comfyui_version":"0.39.0"}}')
+          return
+        }
+        served += 1
+        const m = /bytes=(\d+)-/.exec(String(req.headers.range ?? ''))
+        const start = m ? Number(m[1]) : 0
+        const slice = archiveBytes.subarray(start)
+        res.writeHead(start > 0 ? 206 : 200, {
+          'content-type': 'application/octet-stream',
+          'content-length': String(slice.length),
+          ...(start > 0 ? { 'content-range': `bytes ${start}-${archiveBytes.length - 1}/${archiveBytes.length}` } : {}),
+        })
+        res.end(slice)
+      })
+
+      const upgraded = await e2eComfy.execute({ action: 'upgrade', component: 'engine' }, {})
+      assert(upgraded.ok === true, `engine upgrade failed: ${upgraded.message}`)
+      assert(/preserving engine user data/.test(upgraded.message), `preserve note missing: ${upgraded.message}`)
+      assert(/restored engine user data/.test(upgraded.message), `restore note missing: ${upgraded.message}`)
+      assert(
+        /gateway on port \d+ \(pid \d+\) is not using this engine's python/.test(upgraded.message),
+        `gateway safety check missing: ${upgraded.message}`
+      )
+      assert(/engine restarted \(upgrade finished\)/.test(upgraded.message), `restart note missing: ${upgraded.message}`)
+      assert(engineCalls[0] === 'control:stop:', `engine stop missing: ${engineCalls.join(',')}`)
+      assert(engineCalls[engineCalls.length - 1] === 'control:start:normal', `engine start missing: ${engineCalls.join(',')}`)
+      assert(served > 0, 'archive was never downloaded')
+      // 新版本真的被解压替换
+      assert(
+        /0\.44\.0/.test(readFileSync(path.join(engineRoot2, 'ComfyUI', 'comfyui_version.py'), 'utf8')),
+        'engine version file was not replaced'
+      )
+      // 用户数据被放回新目录
+      assert(existsSync(path.join(engineRoot2, 'ComfyUI', 'extra_model_paths.yaml')), 'extra_model_paths.yaml lost after upgrade')
+      assert(
+        existsSync(path.join(engineRoot2, 'ComfyUI', 'custom_nodes', 'ComfyUI-Fisher-Pose', '__init__.py')),
+        'custom_nodes lost after upgrade'
+      )
+      assert(existsSync(path.join(engineRoot2, 'ComfyUI', 'user', 'comfyui.db')), 'user/comfyui.db lost after upgrade')
+      assert(!existsSync(path.join(installRoot2, '.staging')), '.staging left behind after successful upgrade')
+      // 旧版本进备份（keepVersions=1 保留 1 份）
+      const backups2 = listBackups(
+        {
+          installRoot: installRoot2,
+          engineRoot: engineRoot2,
+          stateDir: path.join(installRoot2, '.imagekit'),
+        },
+        'engine'
+      )
+      assert(backups2.length === 1, `expected 1 engine backup, got ${backups2.length}`)
+      assert(
+        /v0\.39\.0 OLD/.test(
+          readFileSync(path.join(backups2[0].dir, 'payload', 'ComfyUI_windows_portable', 'ComfyUI', 'main.py'), 'utf8')
+        ),
+        'backup does not contain the old engine'
+      )
+      const stateAfter = JSON.parse(readFileSync(path.join(installRoot2, '.imagekit', 'state.json'), 'utf8'))
+      assert(stateAfter.installed.engine.version === '0.44.0', `state not updated: ${stateAfter.installed.engine.version}`)
+      const statusAfter = await e2eComfy.execute({ action: 'status' }, {})
+      const engineRow = statusAfter.components.find((row) => row.component === 'engine')
+      assert(engineRow.installedVersion === '0.44.0', `detected version wrong: ${engineRow.installedVersion}`)
+      assert(engineRow.updateAvailable === false, 'upgraded engine still reports update available')
+      mirror.closeAllConnections?.()
+      mirror.close()
+      console.log('✓ engine upgrade end-to-end: real 7z extract, user data preserved, version verified, engine restarted')
+    } finally {
+      rmSync(e2e, { recursive: true, force: true })
+    }
+  }
 } finally {
   rmSync(root, { recursive: true, force: true })
 }
 
-console.log("\n✓ image_setup 集成检查 6 组全部通过")
+console.log("\n✓ image_setup 集成检查 8 组全部通过")

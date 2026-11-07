@@ -26,7 +26,7 @@ dsh plugin --profile web add ./dsh-imagekit
 | Tool | What it does |
 | --- | --- |
 | `image_generate` / `image_generate_raw` | Text-to-image, reference-based edits, custom workflows; `draft` / `standard` / `quality` tiers |
-| `image_upscale` | 12 Vulkan engine presets: Real-CUGAN / Real-ESRGAN / waifu2x / Omni |
+| `image_upscale` | 10 Vulkan presets from official upstream builds (Real-CUGAN / Real-ESRGAN / waifu2x / RealSR; MIT + BSD-3) |
 | 5 pixel tools | Resize, region marking, alpha flatten, frame animation, pose check |
 | `comfy` / `image_service_status` | ComfyUI engine start/stop, self-healing, upgrade |
 | `image_setup` | Download, verify, back up, roll back and prune models and engines |
@@ -64,7 +64,7 @@ Both packs can be installed together and share the VAE and text encoder; pick `l
 
 ## Docs
 
-[Usage](docs/USAGE.md) · [Prompting](docs/PROMPTS.md) · [Model & params](docs/MODEL.md) · [Configuration](docs/CONFIGURATION.md) · [Architecture](docs/ARCHITECTURE.md) · [Implementation](docs/IMPLEMENTATION.md) · [Icon](docs/ICON.md) · [Releasing](docs/RELEASING.md) · [Roadmap](docs/ROADMAP.md) · [Changelog](CHANGELOG.md) · [Third-party](THIRD_PARTY.md)
+[Usage](docs/USAGE.md) · [Prompting](docs/PROMPTS.md) · [Model & params](docs/MODEL.md) · [Configuration](docs/CONFIGURATION.md) · [Engine versions](docs/ENGINE-VERSIONS.md) · [Architecture](docs/ARCHITECTURE.md) · [Implementation](docs/IMPLEMENTATION.md) · [Icon](docs/ICON.md) · [Releasing](docs/RELEASING.md) · [Roadmap](docs/ROADMAP.md) · [Changelog](CHANGELOG.md) · [Third-party](THIRD_PARTY.md)
 
 ## License
 

@@ -37,10 +37,10 @@ const WHITELIST = {
 		"qwen_image_2_1_i2i", "qwen_image_2_1_turbo_official_t2i", "qwen_image_2_1_turbo_official_edit",
 		"qwen_image_2_1_vnccs", "turbo_official_t2i", "turbo_official_edit", "t2i_turbo",
 	],
-	// 放大引擎预设：校验 lib/upscale.js 的 ENGINES
+	// 放大引擎预设：校验 lib/upscale.js 的 ENGINES（2026-11 迁移到上游官方引擎后）
 	engines: [
-		"cugan", "cugan_cons", "waifu2x", "esrgan_hq", "esrgan_anime", "photo_small", "photo_hq",
-		"photo_conservative", "general", "general_wdn", "omni_small", "omni_turbo", "omni_mini",
+		"cugan", "cugan_pro", "cugan_cons", "waifu2x", "waifu2x_photo",
+		"esrgan_anime", "esrgan_hq", "photo_hq", "realsr", "realsr_jpeg",
 	],
 	// 宿主 / 其它插件提供的工具（不在本包）
 	hostTools: ["job_output", "job_kill", "job_list"],
@@ -184,7 +184,7 @@ for (const file of docs) {
 		}
 
 		// F 版本号（排除 IP 片段如 127.0.0 与已知上游版本）
-		const UPSTREAM = new Set(["3.142.01", "0.39.0", "0.1.0", "1.5.0", "2.1"]);
+		const UPSTREAM = new Set(["0.39.0", "0.1.0", "1.5.0", "2.1"]);
 		for (const m of (isHistory ? [] : line.matchAll(/(?<![\d.])v?(\d+\.\d+\.\d+)(?![\d.])/g))) {
 			const v = m[1];
 			if (v === pkg.version || UPSTREAM.has(v)) continue;

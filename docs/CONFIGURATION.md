@@ -14,6 +14,7 @@
 | | `outputDir` | `<installRoot>\outputs` | 生成图片目录；放大落 `outputs/upscale` |
 | 下载源 | `modelSource` | `huggingface` | `huggingface` / `hf-mirror`（第三方镜像）/ `modelscope`（第三方镜像）/ `custom` |
 | | `modelPackBaseUrl` | 空 | `custom` 时的镜像根 |
+| | `githubProxy` | 空 | GitHub 下载代理（如 `https://ghfast.top/`）。**只在官方路径都不通时兜底**，只代理 `github.com` 链接，仍按清单 sha256 校验；实测不加速、只提升可达性 |
 | | `upscaleSource` | `official` | `official` / `sourceforge` / `custom` |
 | 性能与显存 | —— | 实时读 | 只读面板；**依赖 `perf` 工具，`minimal` 档不注册 → 面板不可用** |
 | 自动行为 | `toolsetProfile` | `standard` | `minimal` 5 件 / `standard` 13 件 / `all` 15 件 |

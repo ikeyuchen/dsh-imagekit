@@ -105,14 +105,15 @@ image_upscale(input_path="<outputDir>/xxx.png")
 
 | 内容 | 引擎 |
 |---|---|
-| 动漫 / 插画 / 二次元 | `cugan`（默认）、`cugan_cons`（保守，防画风漂移）、`waifu2x`、`esrgan_anime` |
-| 真人照片 | `photo_small`、`photo_hq`、`photo_conservative`（防过度锐化）、`general`、`general_wdn`（强降噪） |
-| 3D 渲染 / 通用 | `omni_small`、`omni_turbo`、`omni_mini` |
+| 动漫 / 插画 / 二次元 | `cugan`（默认）、`cugan_pro`（更锐利，仅 ×2/×3）、`cugan_cons`（保守，防画风漂移）、`waifu2x`、`esrgan_anime`（×2/×3/×4）、`esrgan_hq`（×4 Anime-HQ） |
+| 真人照片 | `photo_hq`（Real-ESRGAN x4plus ×4）、`waifu2x_photo`、`realsr`（保守修复 ×4）、`realsr_jpeg`（对 JPEG 伪影更稳） |
+| 3D 渲染 / 通用 | `photo_hq`（x4plus 通用写实）、`realsr`（少增细节）、`esrgan_anime`（要 ×2 快速时） |
 
-- `scale` 默认按引擎（cugan ×2、esrgan_hq ×4）；`denoise` 0–3（0 = 保细节）
+- 引擎全部来自**上游官方** ncnn 构建（MIT / BSD-3）：Real-CUGAN、waifu2x、Real-ESRGAN、RealSR
+- `scale` 默认按引擎（cugan ×2、esrgan_hq/realsr ×4）；`denoise` 0–3（0 = 保细节，仅 Real-CUGAN / waifu2x）
 - 输出默认 `<outputDir>/upscale/`，可传 `save_to`
 - **只吃本地文件**：先生成/下载到磁盘再放大，不吃 URL
-- 引擎没装 → 先 `image_setup(action="install", component="upscale")`
+- 引擎没装 → 先 `image_setup(action="install", component="upscale")`（四包合计约 190 MB）
 
 ## 3.5 组件与旧版本
 
@@ -141,9 +142,9 @@ image_upscale(input_path="<outputDir>/xxx.png")
 
 | 档位 | 工具数 | 常驻 token（tokA / tokB） | 含什么 |
 |---|---|---|---|
-| `minimal` | 5 | **970 / 1132** | `image_generate`、`image_upscale`、`image_service_status`、`image_setup`、`comfy` |
-| `standard`（默认） | 13 | **2350 / 2740** | minimal + `image_generate_raw`、`image_workflow_inspect` + 像素处理 5 件 + `perf` |
-| `all` | 15 | **2650 / 3099** | standard + `env_probe`、`preflight` |
+| `minimal` | 5 | **991 / 1156** | `image_generate`、`image_upscale`、`image_service_status`、`image_setup`、`comfy` |
+| `standard`（默认） | 13 | **2371 / 2764** | minimal + `image_generate_raw`、`image_workflow_inspect` + 像素处理 5 件 + `perf` |
+| `all` | 15 | **2671 / 3123** | standard + `env_probe`、`preflight` |
 
 口径（估算）：宿主只发 `name + description + parameters`（outputSchema 不发）+ 提示段；tokA = CJK 1.6 / ASCII 4.2 字每 token，tokB 为保守值。
 随时可复测：`npm run tokens`。

@@ -40,7 +40,7 @@
 - [x] **生成图片统一目录**：`Config.outputDir`（默认 `<installRoot>/outputs`），不传 `save_to` 时整批落盘、同名不覆盖；放大落 `outputs/upscale`
 - [x] **GitHub 下载兜底**：直链失败回退 Releases API（可选 `GITHUB_TOKEN`）
 - [x] **引擎下载可校验**：清单固定 ComfyUI 版本并登记 `sizeBytes` + `sha256`，下载后强制校验
-- [x] **放大引擎可下载**：清单改为 W2xEX v3.142.01 整合包（1.55GB），7z 选择性解压三个引擎目录；不再依赖本机已有目录
+- [x] **放大引擎可下载**：清单改为 4 个上游官方 ncnn 包（Real-CUGAN / waifu2x / Real-ESRGAN / RealSR，合计约 190MB，MIT + BSD-3），逐包校验 sha256 后解压；不依赖本机已有目录
 - [ ] **更多测试**：设置页路由（HTTP 层）尚未自动化；缺源/断网已覆盖升级回滚，但引擎/放大升级尚未跑真实大文件回归
 
 ## 原则

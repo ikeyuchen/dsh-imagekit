@@ -28,7 +28,7 @@ models.manifest.json
 - 下载器：HTTP Range 续传 + `.partial` 临时文件，校验大小/sha256 后 rename；目标路径先 `assertWithin(installRoot)`；
   删除必须 `confirm=<component>`；归档用 `checkPath`/`checkPaths` 判断解压完成，系统 7z 解压后按 `extractRename` 改名、
   整合包用 `extractGlobs` 只取需要的目录再 `extractMove`；已存在目录不覆盖。
-- `lib/upscale.js` 的 `image_upscale` 预设现在覆盖 W2xEX 自带的 Omni / Photo-Conservative / General 模型；引擎与模型可由 `image_setup` 下载。
+- `lib/upscale.js` 的 `image_upscale` 预设覆盖上游官方 Real-CUGAN / waifu2x / Real-ESRGAN / RealSR 模型；四个引擎包由 `image_setup` 从上游官方 release 下载并校验 sha256。
 - 升级与备份（`lib/setup.js`）：
   - `upgrade` 比较清单 `version` 与已安装版本；相同且 `missing=0` 时跳过；
   - 先把旧内容 `rename` 进 `<installRoot>/.imagekit/backups/<component>/<version>-<时间戳>/payload`，

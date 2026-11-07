@@ -11,7 +11,7 @@
 - **生图**：`image_generate` / `image_generate_raw` / `image_workflow_inspect`，支持 `draft` / `standard` / `quality` 三档、
   参考图自动切换编辑模板、`<image1>…<image10>` 指代多图。
 - **像素处理**：`image_resize_lanczos`、`image_mark_region`、`image_flatten_alpha`、`anim_encode`、`pose_check`。
-- **放大**：`image_upscale`，内置 Real-CUGAN / Real-ESRGAN / waifu2x / Omni 等 12 个引擎预设，Vulkan 直通 GPU。
+- **放大**：`image_upscale`，内置 Real-CUGAN / Real-ESRGAN / waifu2x / RealSR 共 10 个预设（上游官方 MIT/BSD 构建），Vulkan 直通 GPU。
 - **引擎管理**：`comfy`（status / control / upgrade）+ `image_service_status`，引擎与生图网关的隐藏拉起、健康探测与自愈。
 - **资源管理器**：`image_setup`（status / verify / install / upgrade / delete / clean），模型包可叠加安装，
   下载支持断点续传与 sha256 校验，升级先备份、失败自动回滚。
@@ -20,8 +20,30 @@
 - **设置页**：存储位置、下载源、工具集档位、组件与旧版本管理。
 - **工具集档位**：`minimal` 5 件 / `standard` 13 件 / `all` 15 件，按需注册以降低常驻 token。
 
+### 变更
+
+- **放大引擎改为上游官方构建**：`image_upscale` 的四个引擎统一从各自上游官方 GitHub Releases 下载并逐包校验 sha256 ——
+  Real-CUGAN、waifu2x（MIT）、Real-ESRGAN（BSD-3）、RealSR（MIT），合计约 190 MB。
+  预设共 10 个：`cugan` / `cugan_pro` / `cugan_cons` / `waifu2x` / `waifu2x_photo` /
+  `esrgan_anime` / `esrgan_hq` / `photo_hq` / `realsr` / `realsr_jpeg`。
+- 新增 `githubProxy` 配置（默认空）：GitHub 直连不通时可用 `https://ghfast.top/` 之类代理兜底。
+  实测本机直连 `github.com` 8/8 连接超时、`api.github.com` 资产直链 4.0 MB/s、`ghfast.top` 3.55 MB/s 且 sha256 一致——
+  代理只提升**可达性**、不加速；下载器仍优先走官方 API 资产直链，代理排在第三位（仅代理 `github.com` 链接，`api.github.com` 不被代理）。
+
+### 修复
+
+- 引擎升级前先停止引擎、升级后重启并按磁盘 `comfyui_version.py` 校验版本，避免运行中的进程占用目录导致备份 `rename` 失败；
+  整目录替换前会保留并放回 `ComfyUI/custom_nodes` / `ComfyUI/extra_model_paths.yaml` / `ComfyUI/user` / `ComfyUI/input` / `ComfyUI/output` / `ComfyUI/models`，
+  升级不再把用户的节点与模型注册一并冲掉。
+- 升级引擎时一并处理生图网关：先停掉占用引擎 python_embeded 的网关进程（否则目录 `rename` 报 `EPERM`），
+  换包后用新 python 补装 `<网关目录>/requirements.txt`，失败自动回滚；网关由下次生图自愈拉起。
+- 引擎下载改为优先走官方 Releases API 资产直链（发布页直链在受限网络下会在连接阶段超时），
+  增加「无数据超时 + 自动重试 + 断点续传」，避免设置页升级按钮长时间无响应；`sha256` 不符直接失败不重下。
+- 组件「可升级」改为比较磁盘真实版本，不再被陈旧的 `state.json` 记录（如 `"latest"`）永久误报。
+
 ### 说明
 
 - 模型、ComfyUI 引擎、超分引擎、7-Zip 均不随包分发，由用户在设置页触发下载或自行安装。
+- 新增[引擎版本策略](docs/ENGINE-VERSIONS.md)：默认只用清单固定的验证版本，同步上游最新仅作实验性逃生通道。
 - 生图依赖外部网关服务（默认 `http://127.0.0.1:8189`），本仓库不含该服务。
 - 已在 Windows 10/11 x64 验证；其它平台未验证。

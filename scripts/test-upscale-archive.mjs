@@ -38,13 +38,13 @@ function find7z() {
 function buildFixtureArchive(outFile) {
   const sevenZip = find7z()
   if (!sevenZip) return false
-  const stage = path.join(root, 'fixture', 'W2xEX-vtest')
+  const stage = path.join(root, 'fixture', 'engine-vtest')
   const engineDir = path.join(stage, 'realesrgan-ncnn-vulkan')
   mkdirSync(engineDir, { recursive: true })
-  writeFileSync(path.join(engineDir, 'RealESRGAN-W2xEX.exe'), 'stub')
+  writeFileSync(path.join(engineDir, 'realesrgan-ncnn-vulkan.exe'), 'stub')
   mkdirSync(path.join(engineDir, 'models'), { recursive: true })
   writeFileSync(path.join(engineDir, 'models', 'placeholder.txt'), 'stub')
-  execFileSync(sevenZip, ['a', outFile, 'W2xEX-vtest'], { cwd: path.join(root, 'fixture'), stdio: 'ignore' })
+  execFileSync(sevenZip, ['a', outFile, 'engine-vtest'], { cwd: path.join(root, 'fixture'), stdio: 'ignore' })
   return existsSync(outFile)
 }
 
@@ -78,10 +78,10 @@ writeFileSync(
           label: 'test',
           packs: {
             core: {
-              version: '3.142.01',
+              version: '20220424',
               files: [
                 {
-                  label: 'W2xEX test archive',
+                  label: 'engine test archive',
                   path: 'archives/test.7z',
                   sources: { official: 'http://127.0.0.1:1/none.7z' },
                   sizeBytes: null,
@@ -89,7 +89,7 @@ writeFileSync(
                   extractTo: '.',
                   extractGlobs: ['*/realesrgan-ncnn-vulkan/*'],
                   extractMove: ['realesrgan-ncnn-vulkan'],
-                  checkPaths: ['realesrgan-ncnn-vulkan/RealESRGAN-W2xEX.exe'],
+                  checkPaths: ['realesrgan-ncnn-vulkan/realesrgan-ncnn-vulkan.exe'],
                 },
               ],
             },
@@ -132,7 +132,7 @@ assert(row.missing === 1, `expected 1 missing before install, got ${row.missing}
 
 const installed = await setup.execute({ action: 'install', component: 'upscale' }, {})
 assert(installed.ok, `install failed: ${installed.message}`)
-assert(existsSync(path.join(upscaleRoot, 'realesrgan-ncnn-vulkan', 'RealESRGAN-W2xEX.exe')), 'engine exe not moved into target root')
+assert(existsSync(path.join(upscaleRoot, 'realesrgan-ncnn-vulkan', 'realesrgan-ncnn-vulkan.exe')), 'engine exe not moved into target root')
 assert(!existsSync(path.join(upscaleRoot, '.staging')), 'staging dir leaked')
 
 const after = await setup.execute({ action: 'status' }, {})

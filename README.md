@@ -26,7 +26,7 @@ dsh plugin --profile web add ./dsh-imagekit
 | 工具 | 说明 |
 | --- | --- |
 | `image_generate` / `image_generate_raw` | 文生图、参考图改图、任意工作流；`draft` / `standard` / `quality` 三档 |
-| `image_upscale` | Real-CUGAN / Real-ESRGAN / waifu2x / Omni 等 12 个预设，Vulkan 直通 GPU |
+| `image_upscale` | Real-CUGAN / Real-ESRGAN / waifu2x / RealSR 共 10 个预设（上游官方 MIT/BSD 构建），Vulkan 直通 GPU |
 | 像素处理 5 件 | 降采样、红圈标记、透明扁平化、动图合成、姿势检查 |
 | `comfy` / `image_service_status` | ComfyUI 引擎启停、自愈、升级 |
 | `image_setup` | 模型与引擎的下载、校验、备份回滚、旧版本清理 |
@@ -64,7 +64,7 @@ dsh plugin --profile web add ./dsh-imagekit
 
 ## 文档
 
-[用法](docs/USAGE.md) · [提示词](docs/PROMPTS.md) · [模型与参数](docs/MODEL.md) · [配置](docs/CONFIGURATION.md) · [架构](docs/ARCHITECTURE.md) · [实现](docs/IMPLEMENTATION.md) · [图标](docs/ICON.md) · [发布](docs/RELEASING.md) · [路线图](docs/ROADMAP.md) · [变更](CHANGELOG.md) · [第三方](THIRD_PARTY.md)
+[用法](docs/USAGE.md) · [提示词](docs/PROMPTS.md) · [模型与参数](docs/MODEL.md) · [配置](docs/CONFIGURATION.md) · [引擎版本](docs/ENGINE-VERSIONS.md) · [架构](docs/ARCHITECTURE.md) · [实现](docs/IMPLEMENTATION.md) · [图标](docs/ICON.md) · [发布](docs/RELEASING.md) · [路线图](docs/ROADMAP.md) · [变更](CHANGELOG.md) · [第三方](THIRD_PARTY.md)
 
 ## License
 
