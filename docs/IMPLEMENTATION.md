@@ -54,7 +54,8 @@ models.manifest.json
 - 组件状态通过 `fetch('/api/dsh-imagekit/setup', {action:'status'})` 读取；
 - 生图模型行下按 pack 列出 core / fast / lowvram / lowvram-fast / full；每个 pack 有独立「下载该模型/校验」按钮，
   下载时把 `pack` 传给 `image_setup`（pack 之间叠加，不互斥）；
-- 组件行显示当前版本与体积；已装齐则禁用下载、`updateAvailable` 时给「升级」，`backups` 时列出旧版本并可删；
+- 组件行显示当前版本与体积；`versionMismatch`（版本不同）显示「升级」，`needsRepair`（缺文件）显示「修复」，
+  两者互斥；有任务在跑时整行动作锁住（含别的会话发起的任务）；已装齐则禁用下载、`updateAvailable` 时给「升级」，`backups` 时列出旧版本并可删；
 - 按钮分别发 `{action:'install'|'upgrade'|'delete', component, pack?, backup?}`，大文件期间每 3s 刷新状态；
 - 设置值来自 `SettingsFormModel`，字段值是 `{text, overridden, invalid}`：`SettingsValueField` 必须展开该对象
   （直接当 `value` 会触发 React error #31），下拉只取 `.text`。

@@ -134,11 +134,14 @@ try {
   })
   assert(current.targetVersion === '2.1' && current.installedVersion === '2.1', 'recorded version view wrong')
   assert(current.updateAvailable === false, 'same version reported as update')
+  assert(current.versionMismatch === false && current.needsRepair === false, 'nothing should be flagged when version matches and files are intact')
 
   const outdated = componentVersions(manifest, 'models', undefined, layout, {
     installed: { models: { version: '2.0' } },
   })
   assert(outdated.updateAvailable === true, 'older recorded version not flagged as update')
+  assert(outdated.versionMismatch === true, 'version difference should be reported as versionMismatch')
+  assert(outdated.needsRepair === false, 'version difference alone is not a repair')
 
   const inferred = componentVersions(manifest, 'models', undefined, layout, {})
   assert(inferred.installedVersion === '2.1' && inferred.versionSource === 'manifest', 'manifest inference failed')
@@ -146,6 +149,8 @@ try {
   rmSync(modelA, { force: true })
   const missing = componentVersions(manifest, 'models', undefined, layout, {})
   assert(missing.updateAvailable === true, 'missing manifest file not flagged as update')
+  assert(missing.needsRepair === true, 'missing manifest file should be reported as needsRepair')
+  assert(missing.versionMismatch === false, 'missing file is not a version mismatch (UI must say 修复, not 可升级)')
   console.log('✓ version view: recorded / inferred / update available')
 } finally {
   rmSync(root, { recursive: true, force: true })
