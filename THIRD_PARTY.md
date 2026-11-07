@@ -24,7 +24,7 @@
 | **waifu2x ncnn-vulkan** | MIT · https://github.com/nihui/waifu2x-ncnn-vulkan | 同上（20250915，35,497,352 B，sha256 `7425be94…`）。权重来自 nagadomi/waifu2x（MIT） |
 | **Real-ESRGAN ncnn-vulkan** | BSD-3-Clause · https://github.com/xinntao/Real-ESRGAN | 同上（v0.2.5.0 / 20220424，45,474,481 B，sha256 `abc02804…`）；权重随官方仓库以 BSD-3 发布 |
 | **RealSR ncnn-vulkan** | MIT · https://github.com/nihui/realsr-ncnn-vulkan | 同上（20220728，64,005,701 B，sha256 `db77ca82…`）；真实照片保守修复 |
-| **7-Zip**（可选） | LGPL-2.1+（含 unRAR 限制）· https://www.7-zip.org | 若本机已安装则优先调用；**未安装也能工作**——回退到 Windows 10/11 自带的 `tar.exe`（bsdtar / libarchive，能读 7z 与 zip），或 Linux/macOS 的 bsdtar。不随包分发 |
+| **7-Zip**（可选） | LGPL-2.1+（含 unRAR 限制）· https://www.7-zip.org | 若本机已安装则优先调用；未安装也能工作——先试 Windows 自带的 `tar.exe`（bsdtar/libarchive，Win11 与部分 Win10 可解 7z），仍不行则从**官方 GitHub Releases** 下载 7-Zip 精简版 `7zr.exe`（26.06，600,064 B，sha256 固定校验）到 `<installRoot>/tools/`。7-Zip 本体与 7zr 都不随包分发；放大引擎的 zip 由本插件用 Node zlib 自行解压，不需要上述任何工具 |
 | **Pillow / numpy** | MIT-CMU / BSD-3-Clause | 由用户 Python 环境安装，`scripts/pixels.py` 运行时导入 |
 
 第三方下载源：`huggingface.co`（默认）、`hf-mirror.com`、`modelscope`、`SourceForge`、GitHub Releases。

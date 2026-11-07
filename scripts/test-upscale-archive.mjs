@@ -273,6 +273,47 @@ const zipInstalled = await zipTools[0].execute({ action: 'install', component: '
 assert(zipInstalled.ok, `tar zip install failed: ${zipInstalled.message}`)
 assert(existsSync(path.join(tarUpscale, 'realcugan-ncnn-vulkan', 'realcugan-ncnn-vulkan.exe')), 'tar fallback did not extract+rename the zip')
 console.log('✓ 没有 7-Zip 时用系统 tar 解 .zip 并重命名目录')
+
+// 3) zip 走「内置 Node zlib 解压」——完全不依赖 7-Zip / tar（任何平台）
+process.env.IMAGEKIT_EXTRACTOR = 'zip'
+const zipOnlyRoot = path.join(root, 'ziponly-case')
+const zipOnlyUpscale = path.join(zipOnlyRoot, 'upscale-engines', 'engines')
+mkdirSync(path.join(zipOnlyUpscale, 'archives'), { recursive: true })
+const zipOnlyArchive = path.join(zipOnlyUpscale, 'archives', 'engine.zip')
+copyFileSync(zipArchive, zipOnlyArchive)
+const zipOnlyTools = []
+registerSetupTools(
+  { tools: { register: (tool) => zipOnlyTools.push(tool) }, effect: () => {}, inject: undefined },
+  {
+    pluginRoot: tarPlugin,
+    config: {
+      installRoot: zipOnlyRoot,
+      upscaleEnginesRoot: zipOnlyUpscale,
+      modelsRoot: path.join(zipOnlyRoot, 'models'),
+      engineRoot: path.join(zipOnlyRoot, 'engine', 'ComfyUI_windows_portable'),
+    },
+  }
+)
+const zipStatus = await zipOnlyTools[0].execute({ action: 'status' }, {})
+assert(/extractor: zip/.test(zipStatus.message), `status should report the native zip extractor: ${zipStatus.message.split('\n').slice(-4).join(' | ')}`)
+const zipOnlyInstalled = await zipOnlyTools[0].execute({ action: 'install', component: 'upscale' }, {})
+assert(zipOnlyInstalled.ok, `native zip install failed: ${zipOnlyInstalled.message}`)
+assert(
+  existsSync(path.join(zipOnlyUpscale, 'realcugan-ncnn-vulkan', 'realcugan-ncnn-vulkan.exe')),
+  'native zip extractor did not extract+rename the archive'
+)
+assert(
+  existsSync(path.join(zipOnlyUpscale, 'realcugan-ncnn-vulkan', 'models-se', 'up2x-no-denoise.param')),
+  'native zip extractor lost nested files'
+)
+console.log('✓ zip 走内置 Node 解压（不依赖 7-Zip / tar）')
+
+// 4) 7zr 兜底：只验证候选存在（真实下载需网络，npm test 保持离线；真机验证见 CHANGELOG）
+process.env.IMAGEKIT_EXTRACTOR = '7zr'
+const sevenZrStatus = await zipOnlyTools[0].execute({ action: 'status' }, {})
+assert(/extractor: 7zr/.test(sevenZrStatus.message), `status should report 7zr candidate: ${sevenZrStatus.message.split('\n').slice(-6).join(' | ')}`)
+console.log('✓ 7zr 兜底候选可用（真实下载另行手工验证）')
+
 delete process.env.IMAGEKIT_EXTRACTOR
 
 rmSync(root, { recursive: true, force: true })

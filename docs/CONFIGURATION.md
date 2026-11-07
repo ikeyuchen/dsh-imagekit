@@ -59,8 +59,12 @@
 
 同类可覆盖项：`IMAGEKIT_INSTALL_ROOT`（整体换安装根）。
 
-解压相关的环境变量（排障用）：`SEVEN_ZIP` 指定 7z 可执行文件；`IMAGEKIT_EXTRACTOR=7z|tar` 强制只用其中一种。
-默认顺序：7-Zip（若安装）→ Windows 自带 `tar.exe`（能读 7z/zip）→ PATH 上的 `tar`。
+解压相关的环境变量（排障用）：`SEVEN_ZIP` 指定 7z 可执行文件；`IMAGEKIT_EXTRACTOR=7z|tar|zip|7zr` 强制只用其中一种。
+
+默认顺序（按归档类型）：
+- `.zip`：插件内置 Node zlib 解压（零外部依赖）；
+- `.7z`：本机 7-Zip → Windows 自带 `tar.exe`（**仅当其 `--version` 带 liblzma**，部分 Win10 不带）→ 自动下载的官方 `7zr.exe`
+  （落在 `<installRoot>/tools/7zr.exe`，600 KB，sha256 固定校验）。
 
 ## 目录布局
 
