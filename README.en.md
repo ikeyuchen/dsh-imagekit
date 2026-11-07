@@ -64,6 +64,24 @@ The package ships **no** model weights, ComfyUI engine or upscale engines (too l
 
 Toolsets are registered by profile: `minimal` 5 / `standard` 13 / `all` 15 (default `standard`).
 
+## Size and upscaling
+
+Default output is **1056×1056** — roughly the model's native resolution. **Want a bigger image? Upscale instead of generating larger** — it is faster and the detail is more real.
+
+| You want | How | Measured on 12 GB VRAM |
+|---|---|---|
+| Drafts, prompt iteration | `tier="draft"` (1056², 6 steps) | ~10–30 s |
+| Normal output (default) | `tier="standard"` (1056², 25 steps) | ~20–60 s |
+| Large base image | `standard` + `width`/`height` = 1536 | ~50 s |
+| 2K final | `standard` + `width`/`height` = 2048 | ~110 s |
+| Poster / print | generate 1056–1536, then `image_upscale` ×2 | ~5 s → 2112² |
+
+- **Avoid generating above 2048²**: 2560² measured 226 s (2× of 2048²) with little detail gain — the model's native resolution is limited, larger sizes just enlarge pixels.
+- **A single upscale pass pays off even at normal sizes**: 1056² → 2112² in ~5 s, visibly cleaner fur, text edges and noise.
+- On 8 GB VRAM stay at or below 1536² and use a `lowvram` pack; width/height must be multiples of 32.
+
+![1:1 detail crop: plain interpolation vs image_upscale ×2](docs/upscale-detail.webp)
+
 ## Models
 
 | Pack | Steps | Notes |
