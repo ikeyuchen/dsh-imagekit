@@ -1,4 +1,4 @@
-# Third-party / 来源说明
+# 来源说明
 
 本项目以 MIT 许可发布（见 `LICENSE`）。
 
