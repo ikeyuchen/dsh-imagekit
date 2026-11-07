@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Image Generation Studio (generate / process / upscale)",
+    "description": "Local image generation, pixel processing and upscaling in one plugin: Qwen-Image-2.1 text-to-image, reference edits, tiers and workflow inspection; resize/mark/flatten/animate/pose checks; and Vulkan upscaling. Toolset profile: minimal / standard / all."
+  }
+}

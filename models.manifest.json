@@ -1,0 +1,290 @@
+{
+  "manifestVersion": 1,
+  "note": "本清单只登记下载来源与目标相对路径，不随包分发任何权重。Qwen 模型来源为 Comfy-Org/Qwen-Image-2.1；sha256 来自 HF LFS 元数据。",
+  "components": {
+    "engine": {
+      "label": "ComfyUI 便携引擎",
+      "packs": {
+        "default": {
+          "version": "0.44.0",
+          "files": [
+            {
+              "label": "ComfyUI_windows_portable (nvidia)",
+              "path": "engine/ComfyUI_windows_portable.7z",
+              "checkPath": "engine/ComfyUI_windows_portable/ComfyUI/main.py",
+              "sources": {
+                "official": "https://github.com/comfyanonymous/ComfyUI/releases/download/v0.44.0/ComfyUI_windows_portable_nvidia.7z"
+              },
+              "sizeBytes": 2054382457,
+              "sha256": "7170c2db49c182a81adcc051e80234f99dd891656fb200737f87797876348f96",
+              "note": "固定版本 v0.44.0；下载后校验大小与 sha256，再由系统 7z 提取到 installRoot/engine。",
+              "extractTo": "engine"
+            }
+          ]
+        }
+      }
+    },
+    "models": {
+      "label": "Qwen-Image 生图模型",
+      "packs": {
+        "core": {
+          "label": "标准 · int8（12G 显存）",
+          "mode": "standard",
+          "vram": "12G",
+          "quant": "int8",
+          "version": "2.1",
+          "files": [
+            {
+              "label": "qwen_image_2.1 int8 diffusion",
+              "path": "diffusion_models/qwen_image_2.1_int8_convrot.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/diffusion_models/qwen_image_2.1_int8_convrot.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/diffusion_models/qwen_image_2.1_int8_convrot.safetensors"
+              },
+              "sizeBytes": 7256783064,
+              "sha256": "cb74113cb03faecd79611b01fd7fd642f0aa60d6f0b95086abee214d75eaa57d"
+            },
+            {
+              "label": "qwen_image_2.1 vae",
+              "path": "vae/qwen_image_2.1_vae_bf16.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/vae/qwen_image_2.1_vae_bf16.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/vae/qwen_image_2.1_vae_bf16.safetensors"
+              },
+              "sizeBytes": 675509688,
+              "sha256": "bb21f7473051e1ac368515dd3f2e15cd44d7a11748ee8823e1ddca3e4876b7c9"
+            },
+            {
+              "label": "qwen3vl text encoder int8",
+              "path": "text_encoders/qwen3vl_8b_int8_convrot.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/text_encoders/qwen3vl_8b_int8_convrot.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/text_encoders/qwen3vl_8b_int8_convrot.safetensors"
+              },
+              "sizeBytes": 9350798360,
+              "sha256": "8bfd0f6e12abf2d2d697ecc888e5e90b0d6741d6708f05799f53afa560452e8f"
+            }
+          ]
+        },
+        "fast": {
+          "label": "快速 · turbo int8（12G 显存）",
+          "mode": "fast",
+          "vram": "12G",
+          "quant": "int8",
+          "version": "2.1",
+          "files": [
+            {
+              "label": "qwen_image_2.1 turbo int8 diffusion",
+              "path": "diffusion_models/qwen_image_2.1_turbo_int8_convrot.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/diffusion_models/qwen_image_2.1_turbo_int8_convrot.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/diffusion_models/qwen_image_2.1_turbo_int8_convrot.safetensors"
+              },
+              "sizeBytes": 7256787829,
+              "sha256": "8144a0182964aa8403ad6dbc011db837304167d235161b9aabaa8532e967314c"
+            },
+            {
+              "label": "qwen_image_2.1 vae",
+              "path": "vae/qwen_image_2.1_vae_bf16.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/vae/qwen_image_2.1_vae_bf16.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/vae/qwen_image_2.1_vae_bf16.safetensors"
+              },
+              "sizeBytes": 675509688,
+              "sha256": "bb21f7473051e1ac368515dd3f2e15cd44d7a11748ee8823e1ddca3e4876b7c9"
+            },
+            {
+              "label": "qwen3vl text encoder int8",
+              "path": "text_encoders/qwen3vl_8b_int8_convrot.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/text_encoders/qwen3vl_8b_int8_convrot.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/text_encoders/qwen3vl_8b_int8_convrot.safetensors"
+              },
+              "sizeBytes": 9350798360,
+              "sha256": "8bfd0f6e12abf2d2d697ecc888e5e90b0d6741d6708f05799f53afa560452e8f"
+            }
+          ]
+        },
+        "lowvram": {
+          "label": "标准 · int8 + w4a8（8G 显存）",
+          "mode": "standard",
+          "vram": "8G",
+          "quant": "int8+w4a8",
+          "version": "2.1",
+          "files": [
+            {
+              "label": "qwen_image_2.1 int8 diffusion",
+              "path": "diffusion_models/qwen_image_2.1_int8_convrot.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/diffusion_models/qwen_image_2.1_int8_convrot.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/diffusion_models/qwen_image_2.1_int8_convrot.safetensors"
+              },
+              "sizeBytes": 7256783064,
+              "sha256": "cb74113cb03faecd79611b01fd7fd642f0aa60d6f0b95086abee214d75eaa57d"
+            },
+            {
+              "label": "qwen_image_2.1 vae",
+              "path": "vae/qwen_image_2.1_vae_bf16.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/vae/qwen_image_2.1_vae_bf16.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/vae/qwen_image_2.1_vae_bf16.safetensors"
+              },
+              "sizeBytes": 675509688,
+              "sha256": "bb21f7473051e1ac368515dd3f2e15cd44d7a11748ee8823e1ddca3e4876b7c9"
+            },
+            {
+              "label": "qwen3vl text encoder w4a8",
+              "path": "text_encoders/qwen3vl_8b_w4a8.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/text_encoders/qwen3vl_8b_w4a8.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/text_encoders/qwen3vl_8b_w4a8.safetensors"
+              },
+              "sizeBytes": 6312105364,
+              "sha256": "7754425e55e7bea2bfde4dde59a4cc236cb44e5ee9c215ea66ef8d47012824eb"
+            }
+          ]
+        },
+        "lowvram-fast": {
+          "label": "快速 · turbo int8 + w4a8（8G 显存）",
+          "mode": "fast",
+          "vram": "8G",
+          "quant": "int8+w4a8",
+          "version": "2.1",
+          "files": [
+            {
+              "label": "qwen_image_2.1 turbo int8 diffusion",
+              "path": "diffusion_models/qwen_image_2.1_turbo_int8_convrot.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/diffusion_models/qwen_image_2.1_turbo_int8_convrot.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/diffusion_models/qwen_image_2.1_turbo_int8_convrot.safetensors"
+              },
+              "sizeBytes": 7256787829,
+              "sha256": "8144a0182964aa8403ad6dbc011db837304167d235161b9aabaa8532e967314c"
+            },
+            {
+              "label": "qwen_image_2.1 vae",
+              "path": "vae/qwen_image_2.1_vae_bf16.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/vae/qwen_image_2.1_vae_bf16.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/vae/qwen_image_2.1_vae_bf16.safetensors"
+              },
+              "sizeBytes": 675509688,
+              "sha256": "bb21f7473051e1ac368515dd3f2e15cd44d7a11748ee8823e1ddca3e4876b7c9"
+            },
+            {
+              "label": "qwen3vl text encoder w4a8",
+              "path": "text_encoders/qwen3vl_8b_w4a8.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/text_encoders/qwen3vl_8b_w4a8.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/text_encoders/qwen3vl_8b_w4a8.safetensors"
+              },
+              "sizeBytes": 6312105364,
+              "sha256": "7754425e55e7bea2bfde4dde59a4cc236cb44e5ee9c215ea66ef8d47012824eb"
+            }
+          ]
+        },
+        "full": {
+          "label": "全量（turbo + ControlNet + PE）",
+          "mode": "full",
+          "vram": "32G",
+          "quant": "int8",
+          "version": "2.1",
+          "files": [
+            {
+              "label": "qwen_image_2.1 turbo int8 diffusion",
+              "path": "diffusion_models/qwen_image_2.1_turbo_int8_convrot.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/diffusion_models/qwen_image_2.1_turbo_int8_convrot.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/diffusion_models/qwen_image_2.1_turbo_int8_convrot.safetensors"
+              },
+              "sizeBytes": 7256787829,
+              "sha256": "8144a0182964aa8403ad6dbc011db837304167d235161b9aabaa8532e967314c"
+            },
+            {
+              "label": "qwen_image_2.1 vae",
+              "path": "vae/qwen_image_2.1_vae_bf16.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/vae/qwen_image_2.1_vae_bf16.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/vae/qwen_image_2.1_vae_bf16.safetensors"
+              },
+              "sizeBytes": 675509688,
+              "sha256": "bb21f7473051e1ac368515dd3f2e15cd44d7a11748ee8823e1ddca3e4876b7c9"
+            },
+            {
+              "label": "qwen3.5 9b text encoder (t2i)",
+              "path": "text_encoders/qwen3.5_9b_qwen_image_2.1_pe_t2i.int8_convrot.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/text_encoders/qwen3.5_9b_qwen_image_2.1_pe_t2i.int8_convrot.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/text_encoders/qwen3.5_9b_qwen_image_2.1_pe_t2i.int8_convrot.safetensors"
+              },
+              "sizeBytes": 9471072252,
+              "sha256": "9182abae56fe05459840a86d22abd21f972061c92fce032630af680c8c5178d3"
+            },
+            {
+              "label": "controlnet union patch",
+              "path": "model_patches/qwen_image_2.1_fun_controlnet_union_int8_convrot.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/model_patches/qwen_image_2.1_fun_controlnet_union_int8_convrot.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/model_patches/qwen_image_2.1_fun_controlnet_union_int8_convrot.safetensors"
+              },
+              "sizeBytes": 3779298944,
+              "sha256": "07aa961570ac0e03d4ca936aecd76854d077a33cde69b5092399afba01b3715d"
+            },
+            {
+              "label": "qwen3.5 9b text encoder (i2i)",
+              "path": "text_encoders/qwen3.5_9b_qwen_image_2.1_pe_i2i.int8_convrot.safetensors",
+              "sources": {
+                "huggingface": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/text_encoders/qwen3.5_9b_qwen_image_2.1_pe_i2i.int8_convrot.safetensors",
+                "hf-mirror": "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/resolve/main/text_encoders/qwen3.5_9b_qwen_image_2.1_pe_i2i.int8_convrot.safetensors"
+              },
+              "sizeBytes": 9471072252,
+              "sha256": "32707d01b427e488af252b95c551989aad59f9fec611a694f5db6bde7f0f1f6c"
+            }
+          ]
+        }
+      }
+    },
+    "upscale": {
+      "label": "图片放大引擎",
+      "packs": {
+        "core": {
+          "label": "整合引擎（Real-CUGAN / Real-ESRGAN / waifu2x）",
+          "version": "3.142.01",
+          "files": [
+            {
+              "label": "Waifu2x-Extension-GUI v3.142.01 Win64（只解压三个引擎目录）",
+              "path": "archives/Waifu2x-Extension-GUI-v3.142.01-Win64.7z",
+              "checkPath": "realcugan-ncnn-vulkan/models-pro",
+              "checkPaths": [
+                "realcugan-ncnn-vulkan/models-pro",
+                "realesrgan-ncnn-vulkan/models",
+                "waifu2x-ncnn-vulkan/models-cunet"
+              ],
+              "sources": {
+                "official": "https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/download/v3.142.01/Waifu2x-Extension-GUI-v3.142.01-Win64.7z",
+                "sourceforge": "https://sourceforge.net/projects/waifu2x-extension-gui/files/v3.142.01/Waifu2x-Extension-GUI-v3.142.01-Win64.7z/download"
+              },
+              "sizeBytes": 1558670868,
+              "sha256": "9521a541f18028c7688265d678966de6c03a274d4f6b070209a31774fd2f2305",
+              "extractTo": ".",
+              "extractGlobs": [
+                "*/realcugan-ncnn-vulkan/*",
+                "*/engines/realcugan-ncnn-vulkan/*",
+                "*/realesrgan-ncnn-vulkan/*",
+                "*/engines/realesrgan-ncnn-vulkan/*",
+                "*/waifu2x-ncnn-vulkan/*",
+                "*/engines/waifu2x-ncnn-vulkan/*"
+              ],
+              "extractMove": [
+                "realcugan-ncnn-vulkan",
+                "realesrgan-ncnn-vulkan",
+                "waifu2x-ncnn-vulkan"
+              ],
+              "note": "整合包 1.55GB；安装时用 7z 只解压三个引擎目录（兼容 engines/ 前缀），保留下载包便于重装。"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

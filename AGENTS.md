@@ -1,0 +1,31 @@
+# AGENTS.md — dsh-imagekit 开发指引
+
+给在本仓库工作的 AI 代理（以及人）的操作约束。只写容易踩错的，不重复 README。
+
+## 命令
+
+```bash
+npm run check      # 包结构 / 语法 / 发布边界
+npm run test:docs  # 文档漂移（链接、路径、工具名、配置键、数量）
+npm test           # 全套 8 套离线自测，改完必跑
+```
+
+## 硬约束
+
+- 模型、引擎、7-Zip **不进仓库**；`doc-drift` 的 H 规则禁止在 `lib/paths.js` 之外写死盘符路径。
+- 默认路径只在 `lib/paths.js` 派生；新增路径必须走 `IMAGEKIT_INSTALL_ROOT` 等环境变量。
+- 所有下载必须带 `sizeBytes` + `sha256`，无校验的归档不得进入清单。
+- 新增数据文件时同步 `package.json` 的 `files` 与 `THIRD_PARTY.md` 的来源表。
+- 默认下载源保持官方（`huggingface` / GitHub Releases）；第三方镜像只作显式选项。
+
+## 提交与推送
+
+- **不要频繁推送到 GitHub**，攒一批有意义的变更再推。
+- 本地可以随便提交；**推 GitHub 前把本地多个提交合并成一个**，**不要自动推送**，人工确认后执行。
+- 推送时写清说明：做了什么、为什么；用户可见变化同步到 `CHANGELOG.md`。
+
+```bash
+git reset --soft origin/main
+git commit -m "feat: <一句话说明>"
+git push origin main
+```

@@ -1,0 +1,42 @@
+# Third-party / 来源说明
+
+本项目以 MIT 许可发布（见 `LICENSE`）。
+
+> 本项目为第三方开源插件，与阿里巴巴 / Qwen、ComfyUI 项目、DeepSeek 及其关联方**无隶属、赞助或背书关系**。
+> 下列名称仅作兼容性的事实性指代，商标与著作权归各自所有者。
+
+## 本包内聚的自研代码
+
+以下模块由本插件作者编写，于 2026-11-06 内聚进本包：
+
+- `lib/engine/` — 原 `dsh-plugin-comfyui` 引擎管理模块；
+- `lib/perf/` — 原 `dsh-plugin-perfmon` 性能监测模块；
+- `lib/env/` — 原 `dsh-plugin-guard` 的 `env_probe` / `preflight` 环境检测模块；
+- `scripts/pixels.py` — 原 `dsh-plugin-image-pipeline` 的像素处理后端。
+
+## 外部运行时依赖（均不随包分发）
+
+| 组件 | 许可 | 与本包的关系 |
+|---|---|---|
+| **ComfyUI** | GPL-3.0 · https://github.com/comfyanonymous/ComfyUI | `image_setup` 从上游 GitHub Releases 下载**固定 tag**（见 `models.manifest.json`）的 Win64 便携包，校验大小与 sha256 后解压到本机，并 `spawn` 其中的 `python_embeded/python.exe` 运行；本包不修改其源码，GPL-3.0 义务随上游包提供 |
+| **Qwen-Image 权重** | 以模型卡为准 · https://huggingface.co/Comfy-Org/Qwen-Image-2.1 | 由 `image_setup` 从 Hugging Face（或用户选择的镜像）下载到本机；本包不包含权重，许可与使用条款以上游模型卡为准 |
+| **Real-CUGAN / Real-ESRGAN / waifu2x** | 各自上游许可 | 随 Waifu2x-Extension-GUI 整合包提供，本包不单独分发 |
+| **Waifu2x-Extension-GUI**（含整合的 Vulkan 引擎与 W2xEX 模型） | GPL-3.0 · https://github.com/AaronFeng753/Waifu2x-Extension-GUI | `image_setup` 从上游 Releases / SourceForge 下载官方 Win64 整合包（v3.142.01），只解压三个引擎目录；本包不内置、不改源码 |
+| **7-Zip** | LGPL-2.1+（含 unRAR 限制）· https://www.7-zip.org | 仅调用用户本机已安装的 `7z.exe` 解压归档，不随包分发 |
+| **Pillow / numpy** | MIT-CMU / BSD-3-Clause | 由用户 Python 环境安装，`scripts/pixels.py` 运行时导入 |
+
+第三方下载源：`huggingface.co`（默认）、`hf-mirror.com`、`modelscope`、`SourceForge`、GitHub Releases。
+其中 `hf-mirror.com` 与 `modelscope` 为**第三方非官方镜像**，仅在用户显式选择时使用。
+
+第三方 LoRA（`viggle` turbo LoRA、`VNCCS` 姿态 LoRA）与工作流模板由外部生图网关提供，
+本包不下载、不分发，许可与署名以上游作者为准。
+
+**本包不包含任何模型权重、引擎二进制或第三方 GUI。**
+
+## 图标来源
+
+- `icon.svg` 的路径几何取自 **Tabler Icons**（MIT License，https://github.com/tabler/tabler-icons）的 `photo-up` 图形，
+  在 24 网格上复用其坐标与描边；仅把原图形的“太阳圆点”替换为自绘四角火花，并整体改用本项目渐变。
+- MIT 要求在所有副本或实质部分中保留版权声明与许可声明，全文见
+  [`THIRD_PARTY_LICENSES/Tabler-MIT.txt`](THIRD_PARTY_LICENSES/Tabler-MIT.txt)。
+- `docs/icon.png` 是该 SVG 的派生位图。
