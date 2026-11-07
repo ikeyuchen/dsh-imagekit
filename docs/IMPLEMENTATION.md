@@ -88,7 +88,7 @@ models.manifest.json
 
 ## 版本与发布
 
-- 版本 `0.0.1` 起步，只在对外发布时递增；
+- 版本只在对外发布时递增（见 `package.json`）；
 - `npm run check` 校验包结构、patch、必要文件；CI 同款；
 - `npm run smoke` 无宿主加载并按档位验证工具注册（minimal 5 / standard 13 / all 15）；
 - `npm run test:download` 验证下载器 5 项行为；

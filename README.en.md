@@ -13,18 +13,43 @@
 
 ## Install
 
-Search **`dsh-imagekit`** in the plugin marketplace, or install from npm:
+**Option 1: install inside DSH (recommended)**
+
+1. In DSH open **Plugins → Add plugin**
+2. Enter the package name `dsh-imagekit`, keep the source at **npm official registry**
+3. Click **Install**, then open the plugin from the plugin list
+
+**Option 2: command line (also npm)**
 
 ```bash
-dsh plugin --profile web add dsh-imagekit
+dsh plugin add dsh-imagekit
 ```
 
-For source development:
+**Option 3: from source** (development or unreleased builds)
 
 ```bash
 git clone https://github.com/ikeyuchen/dsh-imagekit.git
 dsh plugin --profile web add ./dsh-imagekit
 ```
+
+## First run: models are not bundled
+
+The package ships **no** model weights, ComfyUI engine or upscale engines (too large). Download them from the settings page first, otherwise generation reports missing models:
+
+1. DSH → **Plugins → imagekit (Image workshop) → Configure**
+2. Confirm the install root under **Storage**
+3. Under **Components & manual download → image models**, pick one pack for your VRAM:
+
+   | VRAM | Pack | Notes |
+   | --- | --- | --- |
+   | 12 GB | `core` or `fast` | `core` keeps the most detail; `fast` is ~3x faster |
+   | 8 GB | `lowvram` / `lowvram-fast` | w4a8 text encoder to fit |
+   | 32 GB | `full` | turbo + ControlNet + dual PE encoders |
+
+4. Download the **ComfyUI engine** (~2 GB, required) and the **upscale engines** (~190 MB, optional) on the same page
+5. Once every row shows *installed*, generate; see [usage](docs/USAGE.md)
+
+> Downloaded the wrong pack? Use **Delete pack** on that row — only its exclusive files are removed.
 
 ## Features
 

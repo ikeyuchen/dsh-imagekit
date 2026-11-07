@@ -3,11 +3,21 @@
 > 面向"我要真的用起来"的问题：生图模型怎么调、编辑怎么走、放大怎么选、跑不动怎么办。
 > 提示词怎么写见 [PROMPTS.md](./PROMPTS.md)。
 
-## 0. 先决条件（只用一次）
+## 0. 初始化：先下模型，再出图（只做一次）
+
+插件本体不含模型与引擎。**装完插件先去设置页下载**，否则第一次生图会报缺模型：
+
+1. DSH →「插件」→「图像生成工坊」→「配置」
+2. 「存储位置」确认安装根目录（默认 `<盘符>/AI/Tools/ImageKit`）
+3. 「组件与手动下载」→ 生图模型，按显存选包：12G 用 `core` / `fast`，8G 用 `lowvram` / `lowvram-fast`，32G 用 `full`
+4. 同页下载 ComfyUI 引擎（约 2 GB，必需）、图片放大引擎（约 190 MB，可选）
+5. 全部显示「已安装」即可继续；装错了用该行「删除该包」只删那一个
+
+命令行等价写法（不确定用哪个包时先跑 status）：
 
 | 需要什么 | 怎么查 | 怎么装 |
 |---|---|---|
-| 生图引擎（ComfyUI） | `comfy(action="status")` | 引擎在 `<installRoot>/engine`（`image_setup` 可查/装） |
+| 生图引擎（ComfyUI） | `comfy(action="status")` | 设置页组件区，或 `image_setup(action="install", component="engine")` |
 | 生图模型权重 | `image_setup(action="status")` | `image_setup(action="install", component="models", pack="core")` |
 | 放大引擎 | `image_setup(action="status")` | `image_setup(action="install", component="upscale")` |
 | 显存够不够 | `preflight` / `perf(action="snapshot")` | 12G 用默认档；8G 装 `lowvram` 包 |

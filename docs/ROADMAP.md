@@ -5,7 +5,7 @@
 - [x] 单包内聚生成 / 处理 / 放大 / 引擎 / 性能
 - [x] 独立 GitHub 仓库与本地 git
 - [x] npm 包结构、LICENSE、CHANGELOG、CI
-- [x] 版本从 0.0.1 起步，只在发布时递增
+- [x] 版本只在发布时递增（首个公开版起）
 - [x] 设置页（client）：存储位置 / 下载源 / 自动行为 / 工具集档位
 - [x] 资源管理器 `image_setup`：status / verify / install / upgrade / delete / clean
 - [x] 下载器断点续传 + sha256（`npm run test:download` 5 项自测）

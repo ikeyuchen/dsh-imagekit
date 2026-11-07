@@ -13,18 +13,43 @@
 
 ## 安装
 
-在插件市场搜索 **`dsh-imagekit`** 安装，或直接用 npm：
+**方式一：DSH 内安装（推荐）**
+
+1. 打开 DSH →「插件」→「添加插件」
+2. 输入包名 `dsh-imagekit`，安装源保持「npm 官方源」
+3. 点「安装」；装好后在插件列表里打开它
+
+**方式二：命令行（同样走 npm）**
 
 ```bash
-dsh plugin --profile web add dsh-imagekit
+dsh plugin add dsh-imagekit
 ```
 
-从源码开发时：
+**方式三：源码**（开发或未发布版本）
 
 ```bash
 git clone https://github.com/ikeyuchen/dsh-imagekit.git
 dsh plugin --profile web add ./dsh-imagekit
 ```
+
+## 首次使用：装完还要下模型
+
+插件本体**不含**模型、ComfyUI 引擎与放大引擎（体积太大，不随包分发）。装完必须先去设置页下载，否则生图会报缺模型：
+
+1. DSH →「插件」→「图像生成工坊」→「配置」
+2. 「存储位置」确认安装根目录（默认 `<盘符>/AI/Tools/ImageKit`，可整盘迁移）
+3. 「组件与手动下载」→ **生图模型**：按显存选一个包下载
+
+   | 显存 | 选这个包 | 说明 |
+   | --- | --- | --- |
+   | 12 GB | `core` 或 `fast` | `core` 细节最稳；`fast` turbo 速度约 1/3 |
+   | 8 GB | `lowvram` / `lowvram-fast` | w4a8 文本编码器，省显存 |
+   | 32 GB | `full` | 含 turbo + ControlNet + PE 双编码器 |
+
+4. 同页下载 **ComfyUI 引擎**（约 2 GB，生图必需）与 **图片放大引擎**（约 190 MB，可选）
+5. 都显示「已安装」后即可生图；具体用法见 [用法](docs/USAGE.md)
+
+> 装错了包可以只删那一个：模型包行右侧的「删除该包」只清掉它独有的文件。
 
 ## 能力
 
