@@ -9,9 +9,10 @@
 - **模型包可单独删除**：设置页每个已安装的模型包新增「删除该包」，只清掉该包独有文件（与其他已安装包共用的保留并列出），
   装错高显存包时不必再整个 `models` 全删；命令行对应
   `image_setup(action="delete", component="models", pack="<name>", confirm="models")`。
-- **尺寸与放大的使用说明**：README 与 `docs/USAGE.md` 新增「尺寸与放大」一节，给出 draft / standard / 1536² / 2048² 的实测耗时，
-  说明「超过 2048² 不建议直接生成（2560² 实测 226 秒、细节几乎不增），改走放大」，并附 1:1 细节对比图
-  （`docs/upscale-detail.webp`：传统插值 vs `waifu2x_photo` ×2）。
+- **尺寸与放大的使用说明**：README 与 `docs/USAGE.md` 新增「尺寸与放大」一节，按 Qwen-Image 2.1 官方口径说明
+  **模型原生约 2K（官方示例 2048²/40 步，比例表 2048²–2752×1536）**，插件默认的 1056² 是速度预设（约原生 1/4 面积）；
+  给出 1056²/1536²/2048²/2560² 的实测耗时，并附两张对比图：
+  `docs/native-vs-upscale.webp`（原生 2048² vs 1056² 放大 ×2）、`docs/upscale-detail.webp`（传统插值 vs `waifu2x_photo` ×2）。
 - **文档补齐上手路径**：安装方式分为「DSH 添加插件（包名 `dsh-imagekit`，npm 官方源）」「命令行 `dsh plugin add`」「源码」三种；
   新增「首次使用：装完还要下模型」一节，按显存给出选包对照表，并把设置页路径与组件下载顺序写清。
 

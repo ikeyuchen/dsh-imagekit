@@ -11,13 +11,13 @@
     "steps": 25,
     "width": 1056,
     "height": 1056,
-    "description": "默认画质：25 步 × 干净网格 1056；速度/画质均衡，热引擎约 30-60 秒"
+    "description": "快速出图：25 步 × 1056²（约为模型原生 2K 的 1/4 面积，热引擎约 20 秒）；要成片细节请显式用 2048² 或随后放大"
   },
   "quality": {
     "template": "qwen_image_2_1_t2i",
     "steps": 40,
     "width": 2048,
     "height": 2048,
-    "description": "最终稿：40 步 × 原生 2K（2048）；12GB 显存上为分钟级，一次性任务建议配 unload_after"
+    "description": "成片：40 步 × 原生 2K（2048²，与官方示例一致）；12GB 显存约 170 秒，一次性任务建议配 unload_after"
   }
 }

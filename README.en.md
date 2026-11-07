@@ -66,21 +66,22 @@ Toolsets are registered by profile: `minimal` 5 / `standard` 13 / `all` 15 (defa
 
 ## Size and upscaling
 
-Default output is **1056×1056** — roughly the model's native resolution. **Want a bigger image? Upscale instead of generating larger** — it is faster and the detail is more real.
+Qwen-Image 2.1 is **native ~2K** (official examples use `2048×2048` at 40 steps; official aspect table runs from `2048²` to `2752×1536`).
+This plugin defaults to `1056×1056` as a **speed preset** (~1/4 of the native area), not the model's native size.
 
 | You want | How | Measured on 12 GB VRAM |
 |---|---|---|
 | Drafts, prompt iteration | `tier="draft"` (1056², 6 steps) | ~10–30 s |
-| Normal output (default) | `tier="standard"` (1056², 25 steps) | ~20–60 s |
-| Large base image | `standard` + `width`/`height` = 1536 | ~50 s |
-| 2K final | `standard` + `width`/`height` = 2048 | ~110 s |
-| Poster / print | generate 1056–1536, then `image_upscale` ×2 | ~5 s → 2112² |
+| Fast output (default) | `tier="standard"` (1056², 25 steps) | ~20 s |
+| **Final image with real detail** | explicit `width=2048, height=2048` (40 steps) | **~170 s** |
+| Wide / tall | official ratios, e.g. `2752×1536`, `1536×2752` | same class as 2048² |
+| Cheap 2K | generate 1056², then `image_upscale` ×2 | ~5 s → 2112² |
 
-- **Avoid generating above 2048²**: 2560² measured 226 s (2× of 2048²) with little detail gain — the model's native resolution is limited, larger sizes just enlarge pixels.
-- **A single upscale pass pays off even at normal sizes**: 1056² → 2112² in ~5 s, visibly cleaner fur, text edges and noise.
-- On 8 GB VRAM stay at or below 1536² and use a `lowvram` pack; width/height must be multiples of 32.
+- **Native 2K generation ≠ upscaling a small image**: at 2048² the fur, materials and text are computed by the model; upscaling a 1056² render only sharpens what is already there and cannot invent missing detail.
+- **Do not exceed the native range**: 2560² measured 226 s (25 steps) and tends to repeat structures — generate 2048² and upscale if you need more.
+- On 8 GB VRAM stay at or below 1536² with a `lowvram` pack; width/height must be multiples of 32.
 
-![1:1 detail crop: plain interpolation vs image_upscale ×2](docs/upscale-detail.webp)
+![1:1 detail: native 2048² vs 1056² upscaled ×2](docs/native-vs-upscale.webp)
 
 ## Models
 
