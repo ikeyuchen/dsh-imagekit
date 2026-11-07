@@ -29,13 +29,16 @@ npm test           # 全套 8 套离线自测，改完必跑
 
 ## 提交与推送
 
-- 提交格式与 `dsh-artkit` 一致：`<type>(<scope>): <subject>`，type ∈ feat / fix / refactor / docs / chore / test / perf。
-- **不要频繁推送到 GitHub**，攒一批有意义的变更再推。
-- 本地可以随便提交；**推 GitHub 前把本地多个提交合并成一个**，**不要自动推送**，人工确认后执行。
-- 推送时写清说明：做了什么、为什么；用户可见变化同步到 `CHANGELOG.md`。
+- 本地随便提交，频率不限；**GitHub 不自动推送，用户明确说推才推**。
+- 提交格式：`<type>(<scope>): <subject>`，type ∈ feat / fix / refactor / docs / chore / test / perf。
+- **推送只发快照，不发本地历史**：GitHub 上永远只有一条提交，内容 = 推送时的完整工作区；
+  本地那串高频提交只留在本机。攒一批再推，不要每次改动都推。
+- 推送前：`npm test`、`npm run test:docs` 必须通过；用户可见变化写进 `CHANGELOG.md`。
 
 ```bash
-git reset --soft origin/main
-git commit -m "feat(<scope>): <一句话说明>"
-git push origin main
+git add -A
+SNAP=$(git commit-tree "$(git write-tree)" -m "release: <版本与一句话说明>")
+git push -f origin "$SNAP:main"
 ```
+
+- 推完核对 `git log --oneline origin/main` 只有 1 条；本地 `main` 不受影响（未设 upstream，误敲 `git push` 会直接报错）。
