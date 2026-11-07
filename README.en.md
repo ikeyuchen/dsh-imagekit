@@ -34,14 +34,25 @@ dsh plugin --profile web add ./dsh-imagekit
 
 Toolsets are registered by profile: `minimal` 5 / `standard` 13 / `all` 15 (default `standard`).
 
+## Models
+
+| Pack | Steps | Notes |
+| --- | --- | --- |
+| `core` (standard) | 25 | Best detail and Chinese text; ~30–60 s on a warm engine |
+| `fast` (turbo) | 6–8 | Turbo-distilled, about 1/3 the time, close to standard quality; good for drafts |
+
+Both packs can be installed together and share the VAE and text encoder; pick `lowvram` on 8 GB GPUs.
+
 ## Samples
 
 <p align="center">
-  <img src="docs/demo-photo.webp" width="280" alt="Photoreal sample: orange cat on a windowsill">
+  <img src="docs/demo-photo.webp" width="240" alt="Photoreal: orange cat on a windowsill">
   &nbsp;&nbsp;
-  <img src="docs/demo-poster.webp" width="196" alt="Chinese poster sample">
+  <img src="docs/demo-anime.webp" width="240" alt="Anime: fox-eared girl under cherry blossoms">
+  &nbsp;&nbsp;
+  <img src="docs/demo-text.webp" width="240" alt="Text: Chinese poster">
 </p>
-<p align="center"><em>Generated locally by this plugin: 1056² / 25 steps and 832×1216 / 40 steps (prompts in <a href="docs/USAGE.md">usage</a>)</em></p>
+<p align="center"><em>Photoreal · anime · text, all generated locally by this plugin (1056² / 1056² / 1024²; prompts in <a href="docs/USAGE.md">usage</a>)</em></p>
 
 ## Requirements
 

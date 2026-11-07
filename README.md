@@ -34,14 +34,25 @@ dsh plugin --profile web add ./dsh-imagekit
 
 工具集按档位注册：`minimal` 5 件 / `standard` 13 件 / `all` 15 件，默认 `standard`。
 
+## 模型
+
+| 包 | 步数 | 说明 |
+| --- | --- | --- |
+| `core`（标准） | 25 | 细节与中文文字最稳；热引擎约 30–60 秒 |
+| `fast`（快速） | 6–8 | turbo 蒸馏，耗时约 1/3，质量接近标准；适合草稿迭代 |
+
+两个包可同时安装、共用 VAE 与文本编码器；8G 显存选 `lowvram` 包。
+
 ## 示例
 
 <p align="center">
-  <img src="docs/demo-photo.webp" width="280" alt="写实照片：窗台上的橘白猫">
+  <img src="docs/demo-photo.webp" width="240" alt="写实：窗台上的橘白猫">
   &nbsp;&nbsp;
-  <img src="docs/demo-poster.webp" width="196" alt="中文海报：图像生成工坊">
+  <img src="docs/demo-anime.webp" width="240" alt="二次元：樱花树下的狐耳少女">
+  &nbsp;&nbsp;
+  <img src="docs/demo-text.webp" width="240" alt="文字：中文海报">
 </p>
-<p align="center"><em>均由本插件本地生成：左 1056² / 25 步，右 832×1216 / 40 步（提示词见 <a href="docs/USAGE.md">用法</a>）</em></p>
+<p align="center"><em>写实 · 二次元 · 文字，均由本插件本地生成（1056² / 1056² / 1024²，提示词见 <a href="docs/USAGE.md">用法</a>）</em></p>
 
 ## 要求
 

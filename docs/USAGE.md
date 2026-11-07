@@ -37,6 +37,24 @@ image_upscale(input_path="<上一步输出路径>", engine="cugan")
 2. **迭代用 `draft`**：turbo 6 步和 25 步质量同级，时间只要 1/3；
 3. **画幅用 `width`/`height`**（32 的倍数），不要写进提示词。
 
+### 示例提示词（README 三张配图）
+
+```text
+# 写实：1056² / 25 步（standard）
+一张写实摄影照片：一只橘白相间的短毛猫坐在浅色木质窗台上，午后阳光从左侧斜射进来，
+毛发边缘有轮廓光，背景是虚化的绿植，浅景深，50mm 定焦，柔和侧逆光，色彩自然。
+
+# 二次元：1056² / 25 步
+anime illustration of a silver-haired girl with fox ears standing under a cherry blossom tree,
+cel-shaded, clean line art, vibrant colors, detailed eyes, upper body, soft rim light,
+petals drifting in the air, shallow depth of field
+
+# 文字：1024² / 40 步（含文字建议 40 步）
+一张方形极简科技海报：深藏青纯色背景，画面中央是发光的青蓝色渐变圆环与细网格线，
+柔和光晕向外扩散，顶部大号白色粗体标题写着「图像生成工坊」，标题下方一行浅灰细体小字
+「本地生图 · Vulkan 超分」，底部一行细体英文「dsh-imagekit」，居中构图，干净排版。
+```
+
 ## 1. 文生图（默认路径）
 
 ```
