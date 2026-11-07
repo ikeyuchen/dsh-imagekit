@@ -4,6 +4,8 @@
 
 **本地生图与放大的 DeepSeek Harness 插件**：Qwen-Image 文生图 / 参考图改图、Vulkan 超分，附像素处理、ComfyUI 引擎管理与显存监测。
 
+[简体中文](README.md) · [English](README.en.md)
+
 [![license](https://img.shields.io/badge/license-MIT-4b6fff)](LICENSE)
 [![platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-lightgrey)](#要求)
 [![dsh](https://img.shields.io/badge/dsh-0.2.x-6c5ce7)](package.json)
@@ -31,6 +33,15 @@ dsh plugin --profile web add ./dsh-imagekit
 | `perf` / `env_probe` / `preflight` | 显存采样、环境体检、重活前置闸门 |
 
 工具集按档位注册：`minimal` 5 件 / `standard` 13 件 / `all` 15 件，默认 `standard`。
+
+## 示例
+
+<p align="center">
+  <img src="docs/demo-photo.webp" width="280" alt="写实照片：窗台上的橘白猫">
+  &nbsp;&nbsp;
+  <img src="docs/demo-poster.webp" width="196" alt="中文海报：图像生成工坊">
+</p>
+<p align="center"><em>均由本插件本地生成：左 1056² / 25 步，右 832×1216 / 40 步（提示词见 <a href="docs/USAGE.md">用法</a>）</em></p>
 
 ## 要求
 

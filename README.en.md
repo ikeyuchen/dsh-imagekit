@@ -1,0 +1,58 @@
+# dsh-imagekit
+
+<img src="docs/icon.png" width="88" height="88" alt="dsh-imagekit">
+
+**Local image generation and upscaling for DeepSeek Harness** — Qwen-Image text-to-image / reference edits, Vulkan super-resolution, plus pixel tools, ComfyUI engine and VRAM monitoring.
+
+[简体中文](README.md) · **English**
+
+[![license](https://img.shields.io/badge/license-MIT-4b6fff)](LICENSE)
+[![platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-lightgrey)](#requirements)
+[![dsh](https://img.shields.io/badge/dsh-0.2.x-6c5ce7)](package.json)
+
+## Install
+
+Search **`dsh-imagekit`** in the plugin marketplace, or install from source:
+
+```bash
+git clone https://github.com/ikeyuchen/dsh-imagekit.git
+dsh plugin --profile web add ./dsh-imagekit
+```
+
+> Not published to npm yet. Once published: `dsh plugin --profile web add dsh-imagekit`.
+
+## Features
+
+| Tool | What it does |
+| --- | --- |
+| `image_generate` / `image_generate_raw` | Text-to-image, reference-based edits, custom workflows; `draft` / `standard` / `quality` tiers |
+| `image_upscale` | 12 Vulkan engine presets: Real-CUGAN / Real-ESRGAN / waifu2x / Omni |
+| 5 pixel tools | Resize, region marking, alpha flatten, frame animation, pose check |
+| `comfy` / `image_service_status` | ComfyUI engine start/stop, self-healing, upgrade |
+| `image_setup` | Download, verify, back up, roll back and prune models and engines |
+| `perf` / `env_probe` / `preflight` | VRAM sampling, environment checks, pre-flight gates |
+
+Toolsets are registered by profile: `minimal` 5 / `standard` 13 / `all` 15 (default `standard`).
+
+## Samples
+
+<p align="center">
+  <img src="docs/demo-photo.webp" width="280" alt="Photoreal sample: orange cat on a windowsill">
+  &nbsp;&nbsp;
+  <img src="docs/demo-poster.webp" width="196" alt="Chinese poster sample">
+</p>
+<p align="center"><em>Generated locally by this plugin: 1056² / 25 steps and 832×1216 / 40 steps (prompts in <a href="docs/USAGE.md">usage</a>)</em></p>
+
+## Requirements
+
+- Windows 10/11 x64 (engine and upscale binaries are Win64 only for now).
+- ComfyUI, Qwen-Image weights and 7-Zip are not bundled; check what is missing with `image_setup(action="status")`.
+- The generation gateway (default `127.0.0.1:8189`) is a separate service you provide and point the plugin at.
+
+## Docs
+
+[Usage](docs/USAGE.md) · [Prompting](docs/PROMPTS.md) · [Model & params](docs/MODEL.md) · [Configuration](docs/CONFIGURATION.md) · [Architecture](docs/ARCHITECTURE.md) · [Implementation](docs/IMPLEMENTATION.md) · [Icon](docs/ICON.md) · [Releasing](docs/RELEASING.md) · [Roadmap](docs/ROADMAP.md) · [Changelog](CHANGELOG.md) · [Third-party](THIRD_PARTY.md)
+
+## License
+
+MIT. This is a third-party open-source plugin, not affiliated with, sponsored or endorsed by Alibaba / Qwen, the ComfyUI project, or DeepSeek. Product names are used only to describe compatibility.

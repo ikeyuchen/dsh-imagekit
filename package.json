@@ -54,6 +54,7 @@
     "icon.svg",
     "locale/*.json",
     "README.md",
+    "README.en.md",
     "LICENSE",
     "CHANGELOG.md",
     "THIRD_PARTY.md",
