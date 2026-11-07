@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "图像生成工坊（生成 / 处理 / 放大）",
-    "description": "图像生成工坊：本地图片生成、像素处理与放大三合一：Qwen-Image-2.1 文生图/参考图改图/tier 档位/工作流巡检、降采样/红圈标记/透明扁平化/动图合成/姿势检查，以及 Vulkan 超分。工具集档位可选 minimal / standard / all。"
+    "description": "本地生图与放大：Qwen-Image 生成 / 改图、Vulkan 超分、像素处理，附 ComfyUI 引擎与显存监测。工具集档位 minimal / standard / all。"
   }
 }

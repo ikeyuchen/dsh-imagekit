@@ -2,6 +2,11 @@
 
 给在本仓库工作的 AI 代理（以及人）的操作约束。只写容易踩错的，不重复 README。
 
+## 环境
+
+- Node ≥ 22.19（见 `engines`）。ComfyUI 不在位时先 `comfy status`，别当代码 bug 修。
+- 临时产物只往 `.verify-cache/` 或 `_tmp/` 写（已在 `.gitignore`），不写到仓库外。
+
 ## 命令
 
 ```bash
@@ -18,14 +23,19 @@ npm test           # 全套 8 套离线自测，改完必跑
 - 新增数据文件时同步 `package.json` 的 `files` 与 `THIRD_PARTY.md` 的来源表。
 - 默认下载源保持官方（`huggingface` / GitHub Releases）；第三方镜像只作显式选项。
 
+## 改工具签名或描述时
+
+- 跑 `npm run tokens`，同步 README 的 token 数字、`docs/USAGE.md`、`locale/*.json`、`CHANGELOG.md`。
+
 ## 提交与推送
 
+- 提交格式与 `dsh-artkit` 一致：`<type>(<scope>): <subject>`，type ∈ feat / fix / refactor / docs / chore / test / perf。
 - **不要频繁推送到 GitHub**，攒一批有意义的变更再推。
 - 本地可以随便提交；**推 GitHub 前把本地多个提交合并成一个**，**不要自动推送**，人工确认后执行。
 - 推送时写清说明：做了什么、为什么；用户可见变化同步到 `CHANGELOG.md`。
 
 ```bash
 git reset --soft origin/main
-git commit -m "feat: <一句话说明>"
+git commit -m "feat(<scope>): <一句话说明>"
 git push origin main
 ```

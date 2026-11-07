@@ -1,42 +1,47 @@
-# dsh-imagekit — 图像生成工坊
+# dsh-imagekit
 
-<img src="docs/icon.png" width="96" height="96" alt="图像生成工坊">
+<img src="docs/icon.png" width="88" height="88" alt="dsh-imagekit">
 
-本地生图（Qwen-Image-2.1）+ 图片放大（Vulkan 超分），另附像素处理、引擎管理与显存监测。
+**本地生图与放大的 DeepSeek Harness 插件**：Qwen-Image 文生图 / 参考图改图、Vulkan 超分，附像素处理、ComfyUI 引擎管理与显存监测。
 
-## 快速开始
+[![license](https://img.shields.io/badge/license-MIT-4b6fff)](LICENSE)
+[![platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-lightgrey)](#要求)
+[![dsh](https://img.shields.io/badge/dsh-0.2.x-6c5ce7)](package.json)
 
-1. **装插件**（从源码，npm 尚未发布）
+## 安装
 
-   ```bash
-   git clone https://github.com/ikeyuchen/dsh-imagekit.git
-   dsh plugin --profile web add ./dsh-imagekit
-   ```
+在插件市场搜索 **`dsh-imagekit`** 安装，或从源码：
 
-2. **装模型**：设置页「组件与手动下载」点「下载 / 安装」。模型包可叠加，8G 显存选 `lowvram`。
+```bash
+git clone https://github.com/ikeyuchen/dsh-imagekit.git
+dsh plugin --profile web add ./dsh-imagekit
+```
 
-3. **起服务**：`comfy(action="control", op="start")` 拉起 ComfyUI（:8188）。
-   生图网关（:8189）是独立服务，需自备并在设置里指向它。
+> npm 尚未发布；发布后可直接 `dsh plugin --profile web add dsh-imagekit`。
 
-4. **出图**：先 `image_generate(tier="draft", …)` 迭代，满意后换 `standard`，再 `image_upscale` 放大。
+## 能力
 
-模型、引擎、7-Zip 都不随包分发；缺什么用 `image_setup(action="status")` 查。
+| 工具 | 说明 |
+| --- | --- |
+| `image_generate` / `image_generate_raw` | 文生图、参考图改图、任意工作流；`draft` / `standard` / `quality` 三档 |
+| `image_upscale` | Real-CUGAN / Real-ESRGAN / waifu2x / Omni 等 12 个预设，Vulkan 直通 GPU |
+| 像素处理 5 件 | 降采样、红圈标记、透明扁平化、动图合成、姿势检查 |
+| `comfy` / `image_service_status` | ComfyUI 引擎启停、自愈、升级 |
+| `image_setup` | 模型与引擎的下载、校验、备份回滚、旧版本清理 |
+| `perf` / `env_probe` / `preflight` | 显存采样、环境体检、重活前置闸门 |
 
-要求：Windows 10/11 x64（引擎与超分二进制目前只有 Win64 版本，其它平台未验证）。
+工具集按档位注册：`minimal` 5 件 / `standard` 13 件 / `all` 15 件，默认 `standard`。
 
-## 设置
+## 要求
 
-可改存储位置、下载源、工具集档位（`minimal` 5 件 / `standard` 13 件 / `all` 15 件）、旧版本保留份数。
-「性能与显存」面板依赖 `perf` 工具，`minimal` 档不含。
+- Windows 10/11 x64（引擎与超分二进制目前只有 Win64 版本）。
+- ComfyUI、Qwen-Image 权重、7-Zip 均不随包分发，缺什么用 `image_setup(action="status")` 查。
+- 生图网关（默认 `127.0.0.1:8189`）是独立服务，需自备并在设置里指向它。
 
-默认资产目录 `<installRoot>`：Windows 为 `<盘符>/AI/Tools/ImageKit`（有 D 盘用 D，否则 C），非 Windows 为
-`~/AI/Tools/ImageKit`；可用 `IMAGEKIT_INSTALL_ROOT` 覆盖。旧目录做个 junction 指过去即可，不必搬几十 GB。
+## 文档
 
-文档：[用法](docs/USAGE.md) · [提示词](docs/PROMPTS.md) · [模型与参数](docs/MODEL.md) · [配置](docs/CONFIGURATION.md) · [实现](docs/IMPLEMENTATION.md) · [架构](docs/ARCHITECTURE.md) · [图标](docs/ICON.md) · [发布](docs/RELEASING.md) · [路线图](docs/ROADMAP.md) · [变更](CHANGELOG.md) · [第三方](THIRD_PARTY.md)
+[用法](docs/USAGE.md) · [提示词](docs/PROMPTS.md) · [模型与参数](docs/MODEL.md) · [配置](docs/CONFIGURATION.md) · [架构](docs/ARCHITECTURE.md) · [实现](docs/IMPLEMENTATION.md) · [图标](docs/ICON.md) · [发布](docs/RELEASING.md) · [路线图](docs/ROADMAP.md) · [变更](CHANGELOG.md) · [第三方](THIRD_PARTY.md)
 
 ## License
 
-MIT。
-
-本项目是第三方开源插件，与阿里巴巴 / Qwen、ComfyUI 项目、DeepSeek 及其关联方无隶属、赞助或背书关系；
-文中出现的产品名仅作兼容性的事实性指代，商标归各自所有者。
+MIT。本项目是第三方开源插件，与阿里巴巴 / Qwen、ComfyUI 项目、DeepSeek 及其关联方无隶属、赞助或背书关系；文中产品名仅作兼容性的事实性指代。

@@ -15,5 +15,7 @@ jobs:
           node-version: 22
       - name: Static package check
         run: npm run check
+      - name: Docs drift check
+        run: npm run test:docs
       - name: npm pack dry-run
         run: npm pack --dry-run
