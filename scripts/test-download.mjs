@@ -9,7 +9,7 @@
  */
 import { createServer } from 'node:http'
 import { createHash } from 'node:crypto'
-import { mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -199,6 +199,97 @@ proxyServer.close()
 console.log('✓ proxyBase fallback downloads when the official host is unreachable')
 
 
+// ---- 多连接分片 ----
+const BIG_MB = 16
+const bigPayload = Buffer.alloc(BIG_MB * 1024 * 1024)
+for (let i = 0; i < bigPayload.length; i += 1) bigPayload[i] = (i * 7) % 251
+const bigSha = createHash('sha256').update(bigPayload).digest('hex')
+
+let activeParts = 0
+let peakParts = 0
+const multiServer = createServer((req, res) => {
+  const m = /bytes=(\d+)-(\d*)/.exec(String(req.headers.range ?? ''))
+  const start = m ? Number(m[1]) : 0
+  const end = m && m[2] !== '' ? Number(m[2]) : bigPayload.length - 1
+  if (m && end - start + 1 > 1) {
+    activeParts += 1
+    peakParts = Math.max(peakParts, activeParts)
+    req.on('close', () => { activeParts -= 1 })
+  }
+  const slice = bigPayload.subarray(start, end + 1)
+  res.writeHead(m ? 206 : 200, {
+    'content-type': 'application/octet-stream',
+    'content-length': String(slice.length),
+    'accept-ranges': 'bytes',
+    ...(m ? { 'content-range': `bytes ${start}-${end}/${bigPayload.length}` } : {}),
+  })
+  // 每连接限速：每 60ms 发 128KB，模拟单连接被限速
+  let offset = 0
+  const step = 128 * 1024
+  const timer = setInterval(() => {
+    if (offset >= slice.length) { clearInterval(timer); res.end(); return }
+    res.write(slice.subarray(offset, offset + step))
+    offset += step
+  }, 60)
+  req.on('close', () => clearInterval(timer))
+})
+await new Promise((resolve) => multiServer.listen(0, '127.0.0.1', resolve))
+const multiUrl = `http://127.0.0.1:${multiServer.address().port}/big.bin`
+
+// 4 连接：真的并发 4 段、拼出的文件与 sha256 正确
+const multiDest = path.join(dir, 'multi.bin')
+let progressCalls = 0
+let lastWritten = 0
+const multiRes = await downloadTo(multiUrl, multiDest, {
+  sizeBytes: bigPayload.length,
+  sha256: bigSha,
+  connections: 4,
+  onProgress: (p) => { progressCalls += 1; lastWritten = p.written },
+})
+if (multiRes.connections !== 4) fail(`expected 4 connections, got ${multiRes.connections}`)
+if (peakParts !== 4) fail(`expected 4 concurrent part requests, peaked at ${peakParts}`)
+if (!readFileSync(multiDest).equals(bigPayload)) fail('multi-connection file differs from source')
+if (lastWritten !== bigPayload.length) fail(`progress should end at ${bigPayload.length}, got ${lastWritten}`)
+if (progressCalls < 10) fail('multi-connection should report progress repeatedly')
+console.log('✓ 4 connections download in parallel and reassemble byte-identical')
+
+// 段内续传：只留前一半的第 2 段，重跑应从断点继续
+rmSync(path.join(dir, 'multi.bin'))
+const part2 = multiDest + '.partial.1'
+const partHalf = Math.floor((bigPayload.length / 4) / 2)
+writeFileSync(part2, bigPayload.subarray(Math.floor(bigPayload.length / 4), Math.floor(bigPayload.length / 4) + partHalf))
+const resumedMulti = await downloadTo(multiUrl, multiDest, { sizeBytes: bigPayload.length, sha256: bigSha, connections: 4 })
+if (!readFileSync(multiDest).equals(bigPayload)) fail('resumed multi-connection file differs')
+if (existsSync(part2)) fail('part file should be cleaned after successful reassembly')
+console.log('✓ multi-connection resumes from an existing part file')
+
+// 服务端忽略 Range（永远 200）→ 自动回退单流，文件仍正确
+const noRangeServer = createServer((req, res) => {
+  res.writeHead(200, { 'content-type': 'application/octet-stream', 'content-length': String(bigPayload.length) })
+  let offset = 0
+  const step = 1024 * 1024
+  const timer = setInterval(() => {
+    if (offset >= bigPayload.length) { clearInterval(timer); res.end(); return }
+    res.write(bigPayload.subarray(offset, offset + step))
+    offset += step
+  }, 5)
+})
+await new Promise((resolve) => noRangeServer.listen(0, '127.0.0.1', resolve))
+const fallbackDest = path.join(dir, 'fallback.bin')
+const fallbackRes = await downloadTo(`http://127.0.0.1:${noRangeServer.address().port}/x`, fallbackDest, {
+  sizeBytes: bigPayload.length,
+  sha256: bigSha,
+  connections: 4,
+})
+if (fallbackRes.connections !== 1) fail(`expected fallback to single stream, got ${fallbackRes.connections}`)
+if (!readFileSync(fallbackDest).equals(bigPayload)) fail('fallback download differs from source')
+console.log('✓ falls back to single stream when the server ignores Range')
+
+multiServer.closeAllConnections?.()
+multiServer.close()
+noRangeServer.closeAllConnections?.()
+noRangeServer.close()
+
 server.close()
 rmSync(dir, { recursive: true, force: true })
-console.log('\n✓ 下载器 9 项检查全部通过')
+console.log('\n✓ 下载器 12 项检查全部通过')

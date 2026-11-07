@@ -322,9 +322,36 @@ try {
   const withFile = samples.find((s) => s.job?.fileLabel === 'progress model')
   assert(withFile !== undefined, 'job should name the file being downloaded')
   assert(samples[samples.length - 1].job?.state === 'done', 'job should end in state=done')
+  console.log('✓ download progress: byte-level percent grows monotonically and ends at 100%')
+
+  // 5e. 新用户首装：installRoot 还不存在时，目录/状态文件应自动创建（不需要用户先建目录）
+  const freshRoot = path.join(root, 'fresh-user', 'nested', 'ImageKit')
+  assert(!existsSync(freshRoot), 'fresh fixture should not exist yet')
+  const freshTools = []
+  registerSetupTools(
+    { tools: { register: (t) => freshTools.push(t), get: () => undefined }, effect: () => {}, inject: undefined },
+    {
+      pluginRoot: progRoot,
+      config: {
+        installRoot: freshRoot,
+        modelsRoot: path.join(freshRoot, 'models'),
+        engineRoot: path.join(freshRoot, 'engine', 'ComfyUI_windows_portable'),
+        upscaleEnginesRoot: path.join(freshRoot, 'upscale-engines', 'engines'),
+        modelSource: 'huggingface',
+        keepVersions: '1',
+      },
+    }
+  )
+  const freshInstall = await freshTools[0].execute({ action: 'install', component: 'models', pack: 'prog' }, {})
+  assert(freshInstall.ok, `fresh install failed: ${freshInstall.message}`)
+  assert(existsSync(path.join(freshRoot, 'models', 'diffusion_models', 'progress.safetensors')), 'fresh install did not create the model directory')
+  assert(existsSync(path.join(freshRoot, '.imagekit', 'job.json')), 'fresh install did not write the job progress file')
+  assert(existsSync(path.join(freshRoot, '.imagekit', 'state.json')), 'fresh install did not create the state file')
+  const freshStatus = await freshTools[0].execute({ action: 'status' }, {})
+  assert(freshStatus.ok && freshStatus.components.find((c) => c.component === 'models').installed, 'fresh install should report installed')
+  console.log('✓ first install into a non-existent installRoot creates every directory it needs')
   progServer.closeAllConnections?.()
   progServer.close()
-  console.log('✓ download progress: byte-level percent grows monotonically and ends at 100%')
 
   // 6. 目录级回滚：engine 整目录、upscale 已解压目录
   const statePath = path.join(layout.stateDir, 'state.json')
@@ -617,4 +644,4 @@ try {
   rmSync(root, { recursive: true, force: true })
 }
 
-console.log("\n✓ image_setup 集成检查 11 组全部通过")
+console.log("\n✓ image_setup 集成检查 12 组全部通过")

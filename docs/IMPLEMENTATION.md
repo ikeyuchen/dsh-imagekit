@@ -37,6 +37,8 @@ models.manifest.json
   - 成功后写 `state.json.installed[component] = {version, engineVersion, pack, at}`，并按 `keepVersions` 清理旧备份；
   - 失败时 `restoreBackup` 把 payload 移回原位，保留原版本记录后再报错。
 - 旧版本删除复用 `delete` 动作：带 `backup=<id>` 时只删对应备份（校验 id 字符集、必须落在备份根内、junction 拒绝）。
+- 多连接分片：`downloadTo` 在「已知 sizeBytes ≥ 8MB 且 connections>1」时先 `bytes=0-0` 探测 Range，
+  支持则切成 N 段并发下载（每段独立 `.partial.N` 续传），拼完再统一算 sha256；服务端返回 200 或任一段失败则回退单流。
 - 下载进度写进 `job.json`：`writtenBytes` / `totalBytes` / `fileLabel` / `fileIndex`（下载器回调，**800ms 节流**），
   `status` 再算出 `percent` 给设置页画进度条；设置页下载期间 1s 轮询一次。
 - 多包组件（models）必须显式 `pack=<name>`，不再默认取清单第一个包（否则 8G 显卡会默默下 12G 的包）。
