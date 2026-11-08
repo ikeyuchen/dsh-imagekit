@@ -29,6 +29,7 @@
 |---|---|---|
 | `gatewayUrl` | `http://127.0.0.1:8189` | 本地生图网关 |
 | `generationBackend` | `auto` | 出图后端：`auto`（网关离线自动用内置直连）/ `direct` / `gateway` |
+| `vramIdleFreeMinutes` | `10` | 空闲多少分钟后让引擎卸载模型释放显存（`0` = 不自动释放） |
 | `generateTimeoutSeconds` / `processTimeoutSeconds` / `upscaleTimeoutSeconds` | 900 / 120 / 600 | 单次调用上限 |
 | `selfHealWaitSeconds` | 420 | 引擎自愈等待 |
 | `pythonCommand` / `nodePath` / `pythonPath` / `pnpmPath` | 空 | 空 = 从 PATH 探测 |

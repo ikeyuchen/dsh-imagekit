@@ -30,8 +30,10 @@ models.manifest.json
 `.zip` 用 Node zlib 内置解压，`.7z` 依次试「本机 7-Zip → Windows tar（需 `--version` 含 liblzma）→ 按需下载的官方 7zr.exe」，
 `IMAGEKIT_EXTRACTOR=7z|tar|zip|7zr` 可强制，解压后按 `extractRename` 改名、
   整合包用 `extractGlobs` 只取需要的目录再 `extractMove`；已存在目录不覆盖。
-- `lib/generate/direct.js`：内置直连后端（拼 ComfyUI API 工作流 → `/prompt` → `/history` → `/view`），
-  文生图不依赖外部网关；`generationBackend=auto` 时网关离线自动使用。
+- `lib/generate/direct.js`：内置直连后端（拼 ComfyUI API 工作流 → `/prompt` → `/history` → `/view`）。
+  文生图用 `UNETLoader/CLIPLoader/VAELoader/EmptyLatentImage/KSampler`；参考图编辑用 `LoadImage`（先 `/upload/image` 上传）
+  + `TextEncodeQwenImage21`（输出 positive/negative/latent），turbo 模板自动挂 LoRA。
+  生成后按 `vramIdleFreeMinutes` 安排空闲 `/free`；`unload_after=true` 则立即释放。
 - `lib/upscale.js` 的 `image_upscale` 预设覆盖上游官方 Real-CUGAN / waifu2x / Real-ESRGAN / RealSR 模型；四个引擎包由 `image_setup` 从上游官方 release 下载并校验 sha256。
 - 升级与备份（`lib/setup.js`）：
   - `upgrade` 比较清单 `version` 与已安装版本；相同且 `missing=0` 时跳过；

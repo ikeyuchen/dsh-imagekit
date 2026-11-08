@@ -43,7 +43,14 @@
   （UNETLoader / CLIPLoader / VAELoader / CLIPTextEncode / KSampler / VAEDecode / SaveImage，turbo 模板自动挂 LoRA），
   `/prompt` 提交 → `/history` 轮询 → `/view` 下载，全程静默无窗口。新增配置 `generationBackend`
   （`auto` / `direct` / `gateway`，默认 `auto`：网关离线时自动走内置直连）。
-  实测无网关环境：draft 1056² 7.1 秒、standard 1536²/25 步 47.4 秒。参考图编辑类模板目前仍需兼容网关。
+  实测无网关环境：draft 1056² 7.1 秒、standard 1536²/25 步 47.4 秒。
+- **参考图编辑也内置**：`LoadImage`（先 `/upload/image` 上传本地参考图）+ `TextEncodeQwenImage21`（positive/negative/latent 三输出）
+  构成编辑图，支持 1/3/6 张参考图；实测 1 图 25 步 19.5 秒、1 图 turbo 6 步 6.1 秒、3 图 6 步 8.6 秒，均无网关。
+  至此只有 Prompt 增强（`*_pe`）/ ControlNet / VNCCS 等旧模板仍需外部兼容网关。
+- **模型自动卸载**：`unload_after=true` 生成后立即 `POST /free` 释放（实测占用的 10.22 GB 降到 1.22 GB）；
+  新增 `vramIdleFreeMinutes`（默认 10）在空闲后自动卸载，下次生成重置计时。
+- **网关自愈修正**：网关现在是可选组件——未安装时不再 spawn 不存在的 `app.py`、也不白等 120 秒，而是 0 秒内明确
+  提示「文生图/编辑用内置直连，旧模板才需要网关」；`image_service_status` 在网关 DOWN 时同时报告内置直连是否可用、引擎是否在线。
 
 ### 修复
 

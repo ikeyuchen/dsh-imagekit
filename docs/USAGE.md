@@ -74,7 +74,8 @@ petals drifting in the air, shallow depth of field
 
 ## 1. 文生图（默认路径）
 
-> 不需要网关：插件直接向本机 ComfyUI 提交工作流（内置直连）。只有「参考图编辑类模板」才需要 `gatewayUrl` 指向的兼容网关。
+> 不需要网关：文生图与参考图编辑都由插件直接向本机 ComfyUI 提交工作流（内置直连）。
+> 只有 Prompt 增强（`*_pe`）/ ControlNet / VNCCS 等旧模板才需要 `gatewayUrl` 指向的兼容网关。
 
 ```
 image_generate(prompt="<按 PROMPTS.md 的六槽写>")
@@ -180,6 +181,8 @@ image_upscale(input_path="<outputDir>/xxx.png")
 |---|---|---|
 | `image_generate` 报网关连不上 | 引擎/网关没起 | `comfy(action="control", op="start")`，或看 `image_service_status` |
 | 首次出图特别慢（7–20s 起） | 模型冷加载 | 正常；连续生成会快 |
+| 显存被模型占着不释放 | 模型常驻属正常 | 生成时传 `unload_after=true` 立刻释放；或调 `vramIdleFreeMinutes`（默认 10 分钟）自动释放 |
+| 报「Image gateway unreachable」 | 用了旧模板（`*_pe` / `cn` / `vnccs`）但没装网关 | 文生图/编辑改回 `generationBackend=auto`；旧模板需要兼容网关 |
 | CUDA/显存不足 | 12G 显存跑了 2K | 降 `tier="standard"`、改装 `lowvram` 模型包，或 `comfy(action="control", op="free")` |
 | 生成的是新图、没按参考图改 | 模板是 t2i | 现在会自动切 edit；若手填了 t2i 会报错，按提示改 |
 | 出图没有透明底 | 没在 prompt 里写 | 加 `透明背景` / `transparent background` |

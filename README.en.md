@@ -113,7 +113,7 @@ Both packs can be installed together and share the VAE and text encoder; pick `l
 - **No 7-Zip install needed**: `.7z` engine packages are unpacked by the plugin's bundled official 7-Zip standalone `7zr.exe`
   (downloaded once, 600 KB, pinned sha256); `.zip` upscale packages are unpacked with Node's built-in zlib — both work out of the box
   regardless of what archiver the system has.
-- **Text-to-image works out of the box with no external service**: the plugin submits workflows straight to the local ComfyUI engine (built-in direct backend — no gateway, no Python process, no window). `gatewayUrl` is only needed for reference-image editing templates.
+- **Generation works out of the box with no external service**: text-to-image and reference-image editing are submitted straight to the local ComfyUI engine (built-in direct backend — no gateway, no Python process, no window). Only legacy prompt-enhancer / ControlNet / VNCCS templates need an external compatible gateway.
 
 ## Docs
 
