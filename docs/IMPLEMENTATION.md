@@ -114,6 +114,7 @@ models.manifest.json
 - `npm run test:route` 用假 `connection` 服务 + 真实 `Request` 覆盖设置页两条 host 路由（200/400/503/500、`no-store`）；
 - `npm run test:e2e`（默认跳过）设 `IMAGEKIT_E2E=1` 才跑：真实下载一个组件（默认 `upscale` 约 190 MB）的
   安装 → sha256 → 解压 → status → verify；加 `IMAGEKIT_E2E_UPGRADE=1` 再走一遍备份与升级；
+  `IMAGEKIT_E2E_LOCAL_ARCHIVES=<dir>` 用本机已有的真实归档起本地 HTTP 服务（含 Range），断网也能跑完整回归；
 - `npm run tokens` 按宿主口径量三个档位的常驻 token；
 - `npm test` 依次跑 check + download + backup + setup + upscale + output + prompt + route + docs；
 - 发布流程见 `docs/RELEASING.md`。

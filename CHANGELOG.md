@@ -116,8 +116,12 @@
   非 Windows 平台不再是未知事项——插件明确标注 **Windows x64 专用**（引擎与超分二进制都是 `.exe`），
   加载时会提示，`image_upscale` / `comfy start` 在其它平台返回可读错误。
 - **更多测试**：新增 `npm run test:route`（设置页两条 host 路由，用假 `connection` + 真实 `Request` 覆盖 200/400/503/500 与
-  `no-store`，已并入 `npm test`）；新增 `npm run test:e2e`（默认跳过，`IMAGEKIT_E2E=1` 才跑真实下载：
-  upscale 约 190 MB 的安装 → sha256 → 解压 → status → verify，`IMAGEKIT_E2E_UPGRADE=1` 再走备份与升级）。
+  `no-store`，已并入 `npm test`）；新增 `npm run test:e2e`（默认跳过）：`IMAGEKIT_E2E=1` 跑真实下载
+  （upscale 约 190 MB 的安装 → sha256 → 解压 → status → verify，`IMAGEKIT_E2E_UPGRADE=1` 再走备份与升级；
+  `IMAGEKIT_E2E_LOCAL_ARCHIVES=<dir>` 用本机真实归档 + 本地 HTTP 服务，断网也能跑）。实测：联网安装 73–83 s 通过；
+  本地归档模式下安装 + 升级全链 4.6 s 通过（升级后版本与 verify 均重新校验）。
+- **离线测试去掉联网依赖**：`test:setup` 的引擎升级端到端与 `test:upscale` 的 7z 分支现在优先用本机 7-Zip 解压，
+  不再在测试时下载内置 `7zr`（上游 504 / 断网会让整条 `npm test` 假红）。
 
 ## 0.0.1（2026-11-08）
 
