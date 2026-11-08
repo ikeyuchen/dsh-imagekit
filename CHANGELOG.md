@@ -37,6 +37,14 @@
 - **提示词文档分层**：`docs/PROMPTS.md` 改为「探索版手册」，开头说明两层分工（内置简洁版 = DSH 技能
   `qwen-image-cookbook`，仓库只放探索版）与存放约定，并新增「能力探索方法」一节（固定 seed 阶梯实验、记录格式）。
 
+### 新增
+
+- **内置直连出图后端（文生图不再需要外部网关）**：新增 `lib/generate/direct.js`，插件自己拼 ComfyUI API 工作流
+  （UNETLoader / CLIPLoader / VAELoader / CLIPTextEncode / KSampler / VAEDecode / SaveImage，turbo 模板自动挂 LoRA），
+  `/prompt` 提交 → `/history` 轮询 → `/view` 下载，全程静默无窗口。新增配置 `generationBackend`
+  （`auto` / `direct` / `gateway`，默认 `auto`：网关离线时自动走内置直连）。
+  实测无网关环境：draft 1056² 7.1 秒、standard 1536²/25 步 47.4 秒。参考图编辑类模板目前仍需兼容网关。
+
 ### 修复
 
 - **解压只保留两个方案，不再依赖用户装 7-Zip**：`.zip` 用 Node 内置 zlib 解压；`.7z` 用插件自带的官方 7-Zip 精简版

@@ -74,6 +74,8 @@ petals drifting in the air, shallow depth of field
 
 ## 1. 文生图（默认路径）
 
+> 不需要网关：插件直接向本机 ComfyUI 提交工作流（内置直连）。只有「参考图编辑类模板」才需要 `gatewayUrl` 指向的兼容网关。
+
 ```
 image_generate(prompt="<按 PROMPTS.md 的六槽写>")
 ```

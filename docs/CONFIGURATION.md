@@ -28,6 +28,7 @@
 | 键 | 默认 | 说明 |
 |---|---|---|
 | `gatewayUrl` | `http://127.0.0.1:8189` | 本地生图网关 |
+| `generationBackend` | `auto` | 出图后端：`auto`（网关离线自动用内置直连）/ `direct` / `gateway` |
 | `generateTimeoutSeconds` / `processTimeoutSeconds` / `upscaleTimeoutSeconds` | 900 / 120 / 600 | 单次调用上限 |
 | `selfHealWaitSeconds` | 420 | 引擎自愈等待 |
 | `pythonCommand` / `nodePath` / `pythonPath` / `pnpmPath` | 空 | 空 = 从 PATH 探测 |
