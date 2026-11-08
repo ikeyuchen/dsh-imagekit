@@ -19,7 +19,7 @@
 
 | 参数 | 默认 | 范围/取值 | 什么时候动 |
 |---|---|---|---|
-| `steps` | 25 | 4–50（turbo LoRA 模板 6） | 细节不够 +5~10；赶时间用 `draft` 档（turbo 6 步 ≈ standard，见 §5.3） |
+| `steps` | 25 | 4–50（官方 turbo 固定 8 步；turbo LoRA 回退 6 步） | 细节不够 +5~10；赶时间用 `draft` 档（turbo 8 步 ≈ standard，见 §5.3） |
 | `cfg` | 1.0 | 1.0–3.0（实测） | 保持 1.0；2.0 更浓但耗时 ×1.5，3.0 不推荐（见 §5.2） |
 | `width` / `height` | 由档位决定（draft 1056² / standard 1536² / quality 2048²） | 32 的倍数；模型原生 ≈4MP（2048²），官方比例表 2048²–2752×1536 | 默认档 1536²（25 步，12G 约 50 秒）；成片 2048²/40 步（约 170 秒）；草稿 1056²；**超过原生不建议**（2560² 25 步 226 秒且易重复） |
 | `seed` | -1（随机） | 整数 | 复现同一张：填上次结果里的 seed |
@@ -61,9 +61,9 @@
 | 模板 | 用途 | 关键差异 |
 |---|---|---|
 | `qwen_image_2_1_t2i` | 默认文生图 | 25 步，euler/simple |
-| `qwen_image_2_1_t2i_turbo` | 草稿 | 挂 6 步 turbo LoRA（`Qwen-Image-2.1-viggle-turbo-v0.3-6step-lora-r256`），`draft` 档用它 |
+| `qwen_image_2_1_t2i_turbo` | 草稿 | 内置直连走**官方 8 步协议**（`ManualSigmas` + `CFGGuider`，只要 turbo 模型）；没有 turbo 模型时回退 6 步 turbo LoRA（`Qwen-Image-2.1-viggle-turbo-v0.3-6step-lora-r256`） |
 | `qwen_image_2_1_t2i_pe` | 文生图 + 服务端改写 | 多一个 `TextGenerate` 节点，把短提示词扩写成画面描述 |
-| `qwen_image_2_1_turbo_official_t2i` | 上游 turbo | `KSamplerSelect` + `CFGGuider`，链路不同 |
+| `qwen_image_2_1_turbo_official_t2i` | 上游 turbo | `ManualSigmas`（8 步）+ `CFGGuider` + `SamplerCustomAdvanced`；内置直连的 `draft` 档就是这套 |
 | `qwen_image_2_1_cn` | 中文文字渲染 | 尺寸写死 1024² |
 | `qwen_image_2_1_edit` | 单图编辑 | 需要 `ref_images`，`resolution` 可调 |
 | `qwen_image_2_1_edit3` / `qwen_image_2_1_edit6` | 多图合成（3 / 6 张） | 同上，参考图数量不同 |
@@ -131,7 +131,7 @@ cfg > 1 时每步要同时算正负两条分支，**耗时约 ×1.5**。
 | `turbo_official_t2i` | 8 | **8.3s** | ✅ 正确，标题更大更浓 |
 
 **结论：在本次测试的写实照片与中文海报两类样例上，turbo 模板与 standard 质量同级，耗时约 1/3。**
-推荐用法：**迭代用 `draft`（= t2i_turbo 6 步），定稿再跑 `standard`**。
+推荐用法：**迭代用 `draft`（官方 turbo 8 步），定稿再跑 `standard`**。
 中文文字在两个 turbo 模板下同样能正确渲染，不必为了文字回到 25 步。
 
 ### 5.4 引擎长跑后的一个坑

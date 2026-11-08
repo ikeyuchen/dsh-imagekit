@@ -1,10 +1,10 @@
 {
   "draft": {
     "template": "qwen_image_2_1_t2i_turbo",
-    "steps": 6,
+    "steps": 8,
     "width": 1056,
     "height": 1056,
-    "description": "快速草稿：viggle turbo 6 步 LoRA，最快出图；画质为草稿级（细节/文字弱），用于构图与提示词迭代，满意后再用 standard / quality"
+    "description": "快速草稿：官方 turbo 8 步协议（需 fast 包；没有 turbo 模型时退回 6 步 turbo LoRA），约 8–10 秒，画质接近 standard；用于构图与提示词迭代"
   },
   "standard": {
     "template": "qwen_image_2_1_t2i",

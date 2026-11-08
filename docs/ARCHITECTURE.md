@@ -63,7 +63,7 @@ apply(ctx, config)
 | 参考图编辑 | `image_generate` + `ref_images`（`*_edit` / `*_edit3` / `*_edit6` / `*_i2i`） | ✅ 按张数拼节点（实测 1/3/6） | ✅ 上限 10 |
 | 文字渲染调档 | 同 `image_generate`（`steps` / `cfg` / `negative_prompt`）+ `tier=quality` | ✅ | ✅ |
 | 部分重绘（保结构） | `image_generate` + 单张 `ref_images` + `denoise` 0.7–0.9（直连走 VAEEncode + KSampler） | ✅ | ✅ i2i 模板 |
-| 快速草稿档 | `tier=draft`（turbo LoRA）或 `template=turbo_official_t2i` | ✅ | ✅ |
+| 快速草稿档 | `tier=draft`：直连走**官方 turbo 8 步协议**（`ManualSigmas` + `CFGGuider`，需 `fast` 包，不需 LoRA）；无 turbo 模型时回退 6 步 LoRA | ✅ | ✅ |
 | 放大 | `image_upscale`（`engine` / `scale` / `denoise`，10 个预设） | ✅ | — |
 | 降采样 / 转格式 | `image_resize_lanczos`（`width` / `percent` / `format` / `quality`） | ✅ | — |
 | 透明扁平化 | `image_flatten_alpha`（`background` / `format`） | ✅ | — |
@@ -86,8 +86,7 @@ apply(ctx, config)
 | 裁剪 / 拼接 / 图层合成 | 无工具；编辑是整图重绘不是图层 | 用 `image_generate_raw` 跑自定义工作流，或在仓库外处理 |
 | 骨架生成 / ControlNet / LoRA / PE | 需要额外模型与专用工作流，插件只提供 `pose_check` 校验 | 配 `generationBackend=gateway` 走外部兼容网关 |
 | 编辑模式 `batch_size` | 直连的编辑图固定一图一跑（`batch_size` 只影响 t2i） | 多次调用 |
-| `draft` 档所需的 turbo LoRA | 直连的 turbo 路径 = turbo 模型 + turbo LoRA；**模型包不包含 LoRA**（`full` 也不含） | 自行放入 `models/loras/`；或改用 `standard`/`quality`（`core` 包即可） |
-| 官方 turbo 的 8 步协议 | 官方 turbo 模型配的是 ManualSigmas + CFGGuider；直连没实现，`template=turbo_official_t2i` 在直连会显式报错 | 走网关后端；或直接 `tier=standard` |
+| turbo 档的编辑 | 官方 turbo 编辑是整图重绘（官方口径 cfg 8），实测会把主体换掉、不保结构 | 需要保结构时用 `denoise` 0.7–0.9 的 i2i 路径 |
 
 结论：直连后端已经覆盖手册 §0–§8 的日常路径（生图 / 编辑 / 文字 / 放大 / 动图 / 显存），
 留在外部的只有两类——「质量校验」与「需额外模型的控制」。这两类都不是默认路径的必经环节。

@@ -18,6 +18,11 @@
 
 ### 新增（续）
 
+- **`draft` 档改走官方 turbo 8 步协议**：内置直连不再依赖未随包的 turbo LoRA——只要 `fast` 包里的官方
+  turbo 模型，用官方 sigma 表（`ManualSigmas`）+ `CFGGuider` + `SamplerCustomAdvanced` 出图。
+  同 prompt/seed/1056² 实测：8 步 9.7 s（LoRA 6 步 7.1 s、25 步 18.2 s），锐度 64 vs 25 步 67、
+  与 25 步 SSIM 0.93，而 LoRA 路径的“锐”是噪点（方差 242）。没有 turbo 模型时自动回退 6 步 turbo LoRA。
+  编辑侧同样支持官方 turbo 协议（cfg 8，整图重绘）。
 - **部分重绘成为直连能力**：`image_generate` 新增 `denoise`（0–1，配单张 `ref_images`），直连走
   VAEEncode → KSampler(denoise)，保留原图结构只重画一部分。实测 1056²/20 步：`denoise 0.85` 约 16 s、
   结构不变而杯身改色成功；`0.45` 只能打磨细节。注意 `denoise` 不减少耗时（改的是起始噪声水平），要快就减 `steps`。

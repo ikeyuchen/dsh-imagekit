@@ -94,4 +94,44 @@ check("手册自包含：不引用 DSH 技能", () => {
 	assert.ok(!/qwen-image-cookbook|SKILL\.md/.test(guide));
 });
 
+console.log("turbo 图构建（官方 8 步 / LoRA 回退）");
+
+const { buildOfficialTurboT2IGraph, buildT2IGraph, OFFICIAL_TURBO_SIGMAS, OFFICIAL_TURBO_STEPS } = await import(
+	"../lib/generate/direct.js"
+);
+const fakeModels = {
+	unet: "base.safetensors",
+	unetTurbo: "turbo.safetensors",
+	clip: "clip.safetensors",
+	clipType: "qwen_image",
+	vae: "vae.safetensors",
+	lora: "turbo-lora.safetensors"
+};
+
+check("官方 turbo 图：8 步 sigma 表 + CFGGuider + SamplerCustomAdvanced，且不挂 LoRA", () => {
+	const g = buildOfficialTurboT2IGraph({ models: fakeModels, prompt: "x", width: 1056, height: 1056, seed: 1 });
+	assert.equal(OFFICIAL_TURBO_SIGMAS.split(",").length, OFFICIAL_TURBO_STEPS + 1);
+	assert.equal(g["7"].class_type, "CFGGuider");
+	assert.equal(g["11"].class_type, "SamplerCustomAdvanced");
+	assert.deepEqual(g["11"].inputs.latent_image, ["6", 0]);
+	assert.equal(g["1"].inputs.unet_name, "turbo.safetensors");
+	assert.ok(!Object.values(g).some((n) => n.class_type === "LoraLoaderModelOnly"), "官方协议不应挂 LoRA");
+});
+
+check("无 turbo 模型时回退 base + turbo LoRA", () => {
+	const g = buildT2IGraph({
+		models: { ...fakeModels, unetTurbo: null },
+		prompt: "x",
+		width: 512,
+		height: 512,
+		steps: 6,
+		cfg: 1,
+		seed: 1,
+		turbo: true
+	});
+	assert.equal(g["1"].inputs.unet_name, "base.safetensors");
+	const lora = Object.values(g).find((n) => n.class_type === "LoraLoaderModelOnly");
+	assert.ok(lora, "应挂 LoraLoaderModelOnly");
+});
+
 console.log(`\n✓ ${passed} 项断言通过`);

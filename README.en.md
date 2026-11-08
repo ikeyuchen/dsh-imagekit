@@ -72,7 +72,7 @@ The three tiers trade speed for quality — they are not model limits:
 
 | Tier | Size / steps | Measured on 12 GB VRAM | Good for |
 |---|---|---|---|
-| `draft` | 1056² / 6 steps | ~10–30 s | composition and prompt iteration |
+| `draft` | 1056² / 8 steps (official turbo) | ~8–10 s | composition and prompt iteration |
 | `standard` (default) | **1536² / 25 steps** | **~50 s** | everyday output |
 | `quality` | 2048² / 40 steps | ~170 s | final images, maximum detail |
 | custom | official ratios, e.g. `2752×1536` | same class as 2048² | wide / tall posters |
