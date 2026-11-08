@@ -12,7 +12,7 @@
 ```bash
 npm run check      # 包结构 / 语法 / 发布边界
 npm run test:docs  # 文档漂移（链接、路径、工具名、配置键、数量）
-npm test           # 全套离线自测（check + 6 套 + 路由 + 文档漂移），改完必跑
+npm test           # 全套离线自测（check + 7 套 + 路由 + 文档漂移），改完必跑
 npm run test:e2e   # 真实大文件回归（默认跳过；IMAGEKIT_E2E=1 才跑，拉 ~190MB）
 npm run release    # 发布预演（只显示会改什么，不动文件、不推送）
 ```
