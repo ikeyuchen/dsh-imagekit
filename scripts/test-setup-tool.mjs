@@ -440,9 +440,8 @@ try {
 
   // 8. 端到端：真 7z 归档 + 真实下载 + 停/备份/解压/保留用户数据/版本核对/重启。
   //    用临时 pluginRoot 提供一份指向本地 HTTP 服务的清单，完全不联网。
-  const sevenZip = [process.env.SEVEN_ZIP, 'C:/Program Files/7-Zip/7z.exe', 'C:/Program Files (x86)/7-Zip/7z.exe']
-    .filter(Boolean)
-    .find((candidate) => existsSync(candidate))
+  const { find7z } = await import('./find-7z.mjs')
+  const sevenZip = find7z() === '' ? undefined : find7z()
   if (sevenZip === undefined) {
     console.log('skip: 找不到 7z，跳过引擎升级端到端用例')
   } else {

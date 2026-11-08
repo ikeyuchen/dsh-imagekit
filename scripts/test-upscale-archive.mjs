@@ -23,16 +23,10 @@ const { registerSetupTools } = await import(new URL('../lib/setup.js', import.me
 
 const root = mkdtempSync(path.join(tmpdir(), 'imagekit-upscale-'))
 
-/** 找一个可执行的 7z（与 lib/setup.js 同源优先级）。 */
-function find7z() {
-  const candidates = [
-    process.env.SEVEN_ZIP,
-    'C:/Program Files/7-Zip/7z.exe',
-    'C:/Program Files (x86)/7-Zip/7z.exe',
-  ].filter(Boolean)
-  for (const c of candidates) if (existsSync(c)) return c
-  return ''
-}
+import { find7z as find7zShared } from './find-7z.mjs'
+
+/** 找一个可执行的 7z（Windows 默认目录 / 各平台 PATH，见 scripts/find-7z.mjs）。 */
+const find7z = find7zShared
 
 // 测试不联网：本机有 7-Zip 就显式交给解压器，避免 `7z` 走「按需下载内置 7zr」——
 // 上游 504 / 断网时那条分支会让 npm test 假红。内置 7zr 路径见 CHANGELOG 的手工验证。
@@ -227,29 +221,33 @@ assert(
 )
 console.log('✓ zip 走内置 Node 解压（不依赖 7-Zip / tar）')
 
-// 7z 方案：测试用 SEVEN_ZIP 指向本机 7z（避免联网下载 7zr）；真实「无 7-Zip」场景由 7zr 兜底（手工验证见 CHANGELOG）
-delete process.env.IMAGEKIT_EXTRACTOR
-const explicitRoot = path.join(root, 'explicit7z-case')
-const explicitUpscale = path.join(explicitRoot, 'upscale-engines', 'engines')
-mkdirSync(path.join(explicitUpscale, 'archives'), { recursive: true })
-copyFileSync(archive, path.join(explicitUpscale, 'archives', 'test.7z'))
-const explicitTools = []
-registerSetupTools(
-  { tools: { register: (tool) => explicitTools.push(tool) }, effect: () => {}, inject: undefined },
-  {
-    pluginRoot,
-    config: {
-      installRoot: explicitRoot,
-      upscaleEnginesRoot: explicitUpscale,
-      modelsRoot: path.join(explicitRoot, 'models'),
-      engineRoot: path.join(explicitRoot, 'engine', 'ComfyUI_windows_portable'),
-    },
-  }
-)
-const explicitInstalled = await explicitTools[0].execute({ action: 'install', component: 'upscale' }, {})
-assert(explicitInstalled.ok, `7z install failed: ${explicitInstalled.message}`)
-assert(existsSync(path.join(explicitUpscale, 'realesrgan-ncnn-vulkan', 'realesrgan-ncnn-vulkan.exe')), '7z path did not extract')
-console.log('✓ 7z 走显式 SEVEN_ZIP / 内置 7zr')
+if (find7z() === '') {
+  console.log('skip: 本机与 PATH 都没有 7z，跳过 7z 解压用例（CI 装 p7zip-full 后会跑）')
+} else {
+  // 7z 方案：测试用 SEVEN_ZIP 指向本机 7z（避免联网下载 7zr）；真实「无 7-Zip」场景由 7zr 兜底（手工验证见 CHANGELOG）
+  delete process.env.IMAGEKIT_EXTRACTOR
+  const explicitRoot = path.join(root, 'explicit7z-case')
+  const explicitUpscale = path.join(explicitRoot, 'upscale-engines', 'engines')
+  mkdirSync(path.join(explicitUpscale, 'archives'), { recursive: true })
+  copyFileSync(archive, path.join(explicitUpscale, 'archives', 'test.7z'))
+  const explicitTools = []
+  registerSetupTools(
+    { tools: { register: (tool) => explicitTools.push(tool) }, effect: () => {}, inject: undefined },
+    {
+      pluginRoot,
+      config: {
+        installRoot: explicitRoot,
+        upscaleEnginesRoot: explicitUpscale,
+        modelsRoot: path.join(explicitRoot, 'models'),
+        engineRoot: path.join(explicitRoot, 'engine', 'ComfyUI_windows_portable'),
+      },
+    }
+  )
+  const explicitInstalled = await explicitTools[0].execute({ action: 'install', component: 'upscale' }, {})
+  assert(explicitInstalled.ok, `7z install failed: ${explicitInstalled.message}`)
+  assert(existsSync(path.join(explicitUpscale, 'realesrgan-ncnn-vulkan', 'realesrgan-ncnn-vulkan.exe')), '7z path did not extract')
+  console.log('✓ 7z 走显式 SEVEN_ZIP / 内置 7zr')
+}
 
 delete process.env.IMAGEKIT_EXTRACTOR
 

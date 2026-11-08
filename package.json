@@ -32,15 +32,16 @@
     "deepseek-harness",
     "cordis",
     "image-generation",
+    "image-editing",
+    "image-upscaling",
     "image-processing",
-    "image-upscale",
-    "image-toolkit",
-    "imagegen",
-    "qwen-image",
     "comfyui",
-    "vram",
-    "preflight",
-    "env-probe"
+    "qwen-image",
+    "realcugan",
+    "waifu2x",
+    "vulkan",
+    "local-ai",
+    "vram"
   ],
   "files": [
     "lib/index.js",
