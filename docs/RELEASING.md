@@ -3,6 +3,8 @@
 ## 版本策略
 
 - 当前版本：`0.0.2`
+- 版本号 `主.次.补丁`，本仓库管得宽松：补丁位就是「又一次发布」，不按十进制进位、没有上限，
+  修个 bug 也能发一个；次位只在想做大阶段划分时才动（规则原文见 `AGENTS.md`）。
 - 日常开发提交**不改** `version`；
 - 只有对外发布时才更新 `package.json` 与 `CHANGELOG.md`；日志怎么写（一条一行、固定分区）见 `AGENTS.md` 的「版本号与变更日志」；
 - npm 上每个版本不可覆盖：发布前必须确认 `npm pack --dry-run` 内容，发布后只能改内容发新版本。
@@ -53,7 +55,7 @@ npm view dsh-imagekit version # 核对已上架
 ## 版本号变更（仅发布时）
 
 ```bash
-npm version patch --no-git-tag-version   # 或 minor / major，按兼容性决定
+npm version patch --no-git-tag-version   # 补丁位 +1，不封顶；要做大阶段划分再用 minor / major
 ```
 
 然后更新 `CHANGELOG.md`，重跑检查并发布。
