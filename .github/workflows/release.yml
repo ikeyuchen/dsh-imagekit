@@ -17,6 +17,19 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
+      # prepublishOnly 会跑 check + test:docs + release --check，后者要 import lib/*.js，
+      # 缺宿主侧 peer 包会 ERR_MODULE_NOT_FOUND，所以必须先装依赖（与 ci.yml 同因）。
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Require NPM_TOKEN
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN}" ]; then
+            echo "::error::缺少仓库 secret NPM_TOKEN（Settings → Secrets and variables → Actions）。"
+            echo "在本地发布可改用：npm login 后 npm publish --access public --otp=<6 位码>"
+            exit 1
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Check
         run: npm run check
       - name: Publish

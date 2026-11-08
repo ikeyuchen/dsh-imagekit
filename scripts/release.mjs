@@ -29,8 +29,8 @@ const fail = (msg) => {
 	console.error(`✗ ${msg}`);
 	process.exit(1);
 };
-const run = (cmd, args, { capture = true } = {}) => {
-	const r = spawnSync(cmd, args, { cwd: ROOT, encoding: "utf8", shell: false, stdio: capture ? "pipe" : "inherit" });
+const run = (cmd, args, { capture = true, shell = false } = {}) => {
+	const r = spawnSync(cmd, args, { cwd: ROOT, encoding: "utf8", shell, stdio: capture ? "pipe" : "inherit" });
 	if (r.error) fail(`${cmd} 无法执行：${r.error.message}`);
 	return { code: r.status ?? 1, out: `${r.stdout ?? ""}${r.stderr ?? ""}`.trim() };
 };
@@ -85,8 +85,9 @@ console.log(`\n✓ 已更新 CHANGELOG 标题为「${today}」`);
 
 // —— 2. 发布前检查（AGENTS.md 要求）——
 console.log("\n跑 npm test（含 test:docs）…");
+// Windows 上 npm 是 .cmd 包装器，spawn 不能直接执行（EINVAL），必须经 shell。
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
-const test = run(npm, ["test"], { capture: false });
+const test = run(npm, ["test"], { capture: false, shell: process.platform === "win32" });
 if (test.code !== 0) fail(`npm test 未通过，已停下（CHANGELOG 标题已改，修完再跑一次）`);
 console.log("✓ npm test 通过（含文档漂移）");
 

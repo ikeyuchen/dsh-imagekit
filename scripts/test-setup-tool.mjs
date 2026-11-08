@@ -593,10 +593,14 @@ try {
       assert(upgraded.ok === true, `engine upgrade failed: ${upgraded.message}`)
       assert(/preserving engine user data/.test(upgraded.message), `preserve note missing: ${upgraded.message}`)
       assert(/restored engine user data/.test(upgraded.message), `restore note missing: ${upgraded.message}`)
-      assert(
-        /gateway on port \d+ \(pid \d+\) is not using this engine's python/.test(upgraded.message),
-        `gateway safety check missing: ${upgraded.message}`
-      )
+      // 网关占用检测靠 Windows 的 `netstat -ano` 输出（LISTENING），POSIX 上永远对不上；
+      // 插件本身也只支持 Windows，所以这条断言只在 win32 上验证。
+      if (process.platform === 'win32') {
+        assert(
+          /gateway on port \d+ \(pid \d+\) is not using this engine's python/.test(upgraded.message),
+          `gateway safety check missing: ${upgraded.message}`
+        )
+      }
       assert(/engine restarted \(upgrade finished\)/.test(upgraded.message), `restart note missing: ${upgraded.message}`)
       assert(engineCalls[0] === 'control:stop:', `engine stop missing: ${engineCalls.join(',')}`)
       assert(engineCalls[engineCalls.length - 1] === 'control:start:normal', `engine start missing: ${engineCalls.join(',')}`)
