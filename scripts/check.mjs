@@ -56,7 +56,6 @@ const required = [
   "docs/ARCHITECTURE.md",
   "docs/PROMPTS-CORE.md",
   "docs/RELEASING.md",
-  "docs/ROADMAP.md",
   "THIRD_PARTY.md"
 ];
 for (const rel of required) {

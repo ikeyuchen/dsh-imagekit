@@ -34,6 +34,10 @@ function find7z() {
   return ''
 }
 
+// 测试不联网：本机有 7-Zip 就显式交给解压器，避免 `7z` 走「按需下载内置 7zr」——
+// 上游 504 / 断网时那条分支会让 npm test 假红。内置 7zr 路径见 CHANGELOG 的手工验证。
+if (find7z() !== '') process.env.SEVEN_ZIP = find7z()
+
 /** 当外部样本不可用时，现场造一个形状一致的最小归档。 */
 function buildZipFixture(outFile) {
   const sevenZip = find7z()

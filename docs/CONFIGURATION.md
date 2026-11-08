@@ -20,7 +20,7 @@
 | 性能与显存 | —— | 实时读 | 只读面板；**依赖 `perf` 工具，`minimal` 档不注册 → 面板不可用** |
 | 自动行为 | `toolsetProfile` | `standard` | `minimal` 6 件 / `standard` 14 件 / `all` 16 件 |
 | | `autoDownload` | `off` | 保留字段，当前代码不会自动下载 |
-| | `autoCheckUpdates` | `on` | 保留字段，**开关不生效**（版本比对总会做） |
+| | `autoCheckUpdates` | `on` | `off` 时组件行不再显示「可升级/修复」提示（版本比对仍会做，只是不提示） |
 | | `keepVersions` | `1` | 保留的旧版本备份份数（0–2） |
 
 ## 其他 Config（不在设置页）

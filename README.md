@@ -116,7 +116,7 @@ Qwen-Image 2.1 **原生约 2K**（官方示例 `2048×2048`、40 步；官方比
 
 ## 文档
 
-[用法](docs/USAGE.md) · [提示词手册](docs/PROMPTS.md) · [模型与参数](docs/MODEL.md) · [配置](docs/CONFIGURATION.md) · [引擎版本](docs/ENGINE-VERSIONS.md) · [架构](docs/ARCHITECTURE.md) · [实现](docs/IMPLEMENTATION.md) · [图标](docs/ICON.md) · [发布](docs/RELEASING.md) · [路线图](docs/ROADMAP.md) · [变更](CHANGELOG.md) · [第三方](THIRD_PARTY.md)
+[用法](docs/USAGE.md) · [提示词手册](docs/PROMPTS.md) · [模型与参数](docs/MODEL.md) · [配置](docs/CONFIGURATION.md) · [引擎版本](docs/ENGINE-VERSIONS.md) · [架构](docs/ARCHITECTURE.md) · [实现](docs/IMPLEMENTATION.md) · [图标](docs/ICON.md) · [发布](docs/RELEASING.md) · [变更](CHANGELOG.md) · [第三方](THIRD_PARTY.md)
 
 ## 许可
 

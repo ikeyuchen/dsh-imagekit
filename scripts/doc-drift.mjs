@@ -162,7 +162,7 @@ for (const file of docs) {
 		}
 
 		// D npm 脚本
-		for (const m of line.matchAll(/npm run ([a-z:]+)/g)) {
+		for (const m of line.matchAll(/npm run ([a-z0-9:]+)/g)) {
 			if (!pkg.scripts?.[m[1]]) add("D", file, n, `npm 脚本不存在：${m[1]}`);
 		}
 

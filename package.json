@@ -86,11 +86,13 @@
     "test:setup": "node scripts/test-setup-tool.mjs",
     "test:upscale": "node scripts/test-upscale-archive.mjs",
     "test:output": "node scripts/test-output-dir.mjs",
-    "test": "npm run check && npm run test:download && npm run test:backup && npm run test:setup && npm run test:upscale && npm run test:output && npm run test:prompt && npm run test:docs",
+    "test": "npm run check && npm run test:download && npm run test:backup && npm run test:setup && npm run test:upscale && npm run test:output && npm run test:prompt && npm run test:route && npm run test:docs",
     "prepublishOnly": "npm run check",
     "test:prompt": "node scripts/test-prompt-routing.mjs",
     "tokens": "node scripts/token-report.mjs",
-    "test:docs": "node scripts/doc-drift.mjs"
+    "test:docs": "node scripts/doc-drift.mjs",
+    "test:route": "node scripts/test-route.mjs",
+    "test:e2e": "node scripts/test-upgrade-real.mjs"
   },
   "devDependencies": {
     "@deepseek-ai/dsh-tools": "0.2.1-rc.5",

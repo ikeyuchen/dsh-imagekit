@@ -12,7 +12,8 @@
 ```bash
 npm run check      # 包结构 / 语法 / 发布边界
 npm run test:docs  # 文档漂移（链接、路径、工具名、配置键、数量）
-npm test           # 全套 8 套离线自测，改完必跑
+npm test           # 全套离线自测（check + 7 套 + 路由 + 文档漂移），改完必跑
+npm run test:e2e   # 真实大文件回归（默认跳过；IMAGEKIT_E2E=1 才跑，拉 ~190MB）
 ```
 
 ## 硬约束
@@ -22,6 +23,9 @@ npm test           # 全套 8 套离线自测，改完必跑
 - 所有下载必须带 `sizeBytes` + `sha256`，无校验的归档不得进入清单。
 - 新增数据文件时同步 `package.json` 的 `files` 与 `THIRD_PARTY.md` 的来源表。
 - 默认下载源保持官方（`huggingface` / GitHub Releases）；第三方镜像只作显式选项。
+- 删除/升级只操作清单登记路径，必须二次确认；junction 根拒绝删除。
+- 大文件下载只能由用户手动触发，不自动下载；版本号只在对外发布时递增。
+- 平台：本插件是 Windows x64 向（ComfyUI 便携引擎与超分二进制都是 `.exe`）。
 - 提示词文档分两层、不要互相复制：内置核心版是 `docs/PROMPTS-CORE.md`（随包分发，由 `image_prompt_guide`
   按需返回，不依赖 DSH 技能）；另一层是探索版 `docs/PROMPTS.md`。新增提示词文件放 `docs/`，命名 `PROMPTS*.md`。
 

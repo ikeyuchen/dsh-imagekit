@@ -449,6 +449,10 @@ try {
     const { execFileSync } = await import('node:child_process')
     const { createHash } = await import('node:crypto')
     const e2e = mkdtempSync(path.join(tmpdir(), 'imagekit-engine-e2e-'))
+    // 离线固定：有本机 7-Zip 就用它解压，不去下载内置 7zr（否则该用例依赖 GitHub 可达性，
+    // 上游 504 时整条 npm test 会假红）。内置 7zr 路径见 test-upscale-archive 与 CHANGELOG 的手工验证。
+    const prevSevenZip = process.env.SEVEN_ZIP
+    process.env.SEVEN_ZIP = sevenZip
     try {
       // 8a. 造一个「v0.44.0」的引擎归档（内含 ComfyUI/main.py 与 comfyui_version.py）
       const stage = path.join(e2e, 'stage')
@@ -637,6 +641,8 @@ try {
       mirror.close()
       console.log('✓ engine upgrade end-to-end: real 7z extract, user data preserved, version verified, engine restarted')
     } finally {
+      if (prevSevenZip === undefined) delete process.env.SEVEN_ZIP
+      else process.env.SEVEN_ZIP = prevSevenZip
       rmSync(e2e, { recursive: true, force: true })
     }
   }
