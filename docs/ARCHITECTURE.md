@@ -6,7 +6,7 @@
 
 ```
 apply(ctx, config)
-├── registerImageGenTools   生图 2 件（+2 件任意工作流，standard 起）
+├── registerImageGenTools   生图 2 件 + 提示词手册 1 件（+2 件任意工作流，standard 起）
 ├── registerUpscaleTools    放大 1 件
 ├── registerSetupTools      组件安装 image_setup 1 件
 ├── applyEngine             引擎 comfy 1 件
@@ -17,12 +17,12 @@ apply(ctx, config)
 
 | 档位 | 件数 | 组成 |
 |---|---|---|
-| `minimal` | 5 | 生图 2 + 放大 1 + 安装 1 + 引擎 1 |
-| `standard`（默认） | 13 | minimal + 任意工作流 2 + 处理 5 + perf 1 |
-| `all` | 15 | standard + env_probe + preflight |
+| `minimal` | 6 | 生图 2 + 手册 1 + 放大 1 + 安装 1 + 引擎 1 |
+| `standard`（默认） | 14 | minimal + 任意工作流 2 + 处理 5 + perf 1 |
+| `all` | 16 | standard + env_probe + preflight |
 
 分档依据：插件只有**生图**与**放大**两个功能，其余工具只在这两件事之外才用得到；
-常驻成本见 `npm run tokens`（1012 / 2392 / 2692 tokA）。
+常驻成本见 `npm run tokens`（1144 / 2524 / 2824 tokA）。
 
 所有工具共享同一个 Cordis 插件生命周期和系统提示段；`image_generate` 的引擎兜底可以直接从
 `ctx.tools.get("comfy")` 找到同包引擎工具，不再依赖外部插件是否存在。

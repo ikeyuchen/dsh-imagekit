@@ -56,13 +56,14 @@ dsh plugin --profile web add ./dsh-imagekit
 | 工具 | 说明 |
 | --- | --- |
 | `image_generate` / `image_generate_raw` | 文生图、参考图改图、任意工作流；`draft` / `standard` / `quality` 三档 |
+| `image_prompt_guide` | 内置提示词手册（选档 / 分类配方 / 文字渲染 / 参考图编辑 / 放大路由），按需返回，不占常驻 token |
 | `image_upscale` | Real-CUGAN / Real-ESRGAN / waifu2x / RealSR 共 10 个预设（上游官方 MIT/BSD 构建），Vulkan 直通 GPU |
 | 像素处理 5 件 | 降采样、红圈标记、透明扁平化、动图合成、姿势检查 |
 | `comfy` / `image_service_status` | ComfyUI 引擎启停、自愈、升级 |
 | `image_setup` | 模型与引擎的下载、校验、备份回滚、旧版本清理 |
 | `perf` / `env_probe` / `preflight` | 显存采样、环境体检、重活前置闸门 |
 
-工具集按档位注册：`minimal` 5 件 / `standard` 13 件 / `all` 15 件，默认 `standard`。
+工具集按档位注册：`minimal` 6 件 / `standard` 14 件 / `all` 16 件，默认 `standard`。
 
 ## 尺寸与放大
 

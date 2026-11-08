@@ -11,7 +11,7 @@
  */
 import assert from "node:assert/strict";
 
-const { resolveTemplateForRefs } = await import("../lib/generate/tools.js");
+const { resolveTemplateForRefs, readPromptGuide, promptGuideTopics, slicePromptGuide } = await import("../lib/generate/tools.js");
 
 let passed = 0;
 const check = (label, fn) => {
@@ -58,6 +58,40 @@ check("turbo_official_t2i 同样被判为纯文生图", () => {
 		() => resolveTemplateForRefs({ effectiveTemplate: "qwen_image_2_1_turbo_official_t2i", explicitTemplate: "qwen_image_2_1_turbo_official_t2i", refCount: 1 }),
 		(err) => /ignores ref_images/.test(err.message)
 	);
+});
+
+console.log("image_prompt_guide（随包手册）");
+
+const guide = readPromptGuide();
+
+check("手册随包存在且不是空壳", () => {
+	assert.ok(guide.length > 3000, `len=${guide.length}`);
+});
+
+check("小节 ≥ 8 个且覆盖关键主题", () => {
+	const topics = promptGuideTopics(guide);
+	assert.ok(topics.length >= 8, `topics=${topics.length}`);
+	for (const key of ["选档", "文字", "参考图编辑", "放大", "边界", "排查"]) {
+		assert.ok(topics.some((t) => t.includes(key)), `缺少小节：${key}`);
+	}
+});
+
+check("按关键字只返回命中小节", () => {
+	const { content, matched } = slicePromptGuide(guide, "文字");
+	assert.equal(matched, true);
+	assert.ok(content.startsWith("## "));
+	assert.ok(content.includes("幻觉字块"));
+	assert.ok(!content.includes("## 7."));
+});
+
+check("未命中关键字回退全文（不报错也不空返回）", () => {
+	const { content, matched } = slicePromptGuide(guide, "不存在的主题");
+	assert.equal(matched, false);
+	assert.equal(content, guide);
+});
+
+check("手册自包含：不引用 DSH 技能", () => {
+	assert.ok(!/qwen-image-cookbook|SKILL\.md/.test(guide));
 });
 
 console.log(`\n✓ ${passed} 项断言通过`);

@@ -1,7 +1,7 @@
 # 用法与排障
 
 > 面向"我要真的用起来"的问题：生图模型怎么调、编辑怎么走、放大怎么选、跑不动怎么办。
-> 提示词写法见 [PROMPTS.md](./PROMPTS.md)（探索版手册；内置简洁版是 DSH 技能 `qwen-image-cookbook`）。
+> 提示词写法见 [PROMPTS.md](./PROMPTS.md)（探索版）；内置核心手册随包分发，用 `image_prompt_guide` 按需读取。
 
 ## 0. 初始化：先下模型，再出图（只做一次）
 
@@ -201,9 +201,9 @@ image_upscale(input_path="<outputDir>/xxx.png")
 
 | 档位 | 工具数 | 常驻 token（tokA / tokB） | 含什么 |
 |---|---|---|---|
-| `minimal` | 5 | **1012 / 1181** | `image_generate`、`image_upscale`、`image_service_status`、`image_setup`、`comfy` |
-| `standard`（默认） | 13 | **2392 / 2789** | minimal + `image_generate_raw`、`image_workflow_inspect` + 像素处理 5 件 + `perf` |
-| `all` | 15 | **2692 / 3148** | standard + `env_probe`、`preflight` |
+| `minimal` | 6 | **1144 / 1337** | `image_generate`、`image_prompt_guide`、`image_upscale`、`image_service_status`、`image_setup`、`comfy` |
+| `standard`（默认） | 14 | **2524 / 2945** | minimal + `image_generate_raw`、`image_workflow_inspect` + 像素处理 5 件 + `perf` |
+| `all` | 16 | **2824 / 3304** | standard + `env_probe`、`preflight` |
 
 口径（估算）：宿主只发 `name + description + parameters`（outputSchema 不发）+ 提示段；tokA = CJK 1.6 / ASCII 4.2 字每 token，tokB 为保守值。
 随时可复测：`npm run tokens`。

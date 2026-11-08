@@ -47,14 +47,14 @@ const unwrap = (value) =>
 
 // 三档工具清单：minimal（只够跑生图+放大）/ standard（默认）/ all
 const PROFILES = {
-  minimal: ["image_generate", "image_service_status", "image_upscale", "image_setup", "comfy"],
+  minimal: ["image_generate", "image_prompt_guide", "image_service_status", "image_upscale", "image_setup", "comfy"],
   standard: [
-    "image_generate", "image_generate_raw", "image_workflow_inspect", "image_service_status",
+    "image_generate", "image_generate_raw", "image_workflow_inspect", "image_prompt_guide", "image_service_status",
     "image_resize_lanczos", "image_mark_region", "image_flatten_alpha", "anim_encode", "pose_check",
     "image_upscale", "image_setup", "comfy", "perf",
   ],
   all: [
-    "image_generate", "image_generate_raw", "image_workflow_inspect", "image_service_status",
+    "image_generate", "image_generate_raw", "image_workflow_inspect", "image_prompt_guide", "image_service_status",
     "image_resize_lanczos", "image_mark_region", "image_flatten_alpha", "anim_encode", "pose_check",
     "image_upscale", "image_setup", "comfy", "perf", "env_probe", "preflight",
   ],

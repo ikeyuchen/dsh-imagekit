@@ -56,13 +56,14 @@ The package ships **no** model weights, ComfyUI engine or upscale engines (too l
 | Tool | What it does |
 | --- | --- |
 | `image_generate` / `image_generate_raw` | Text-to-image, reference-based edits, custom workflows; `draft` / `standard` / `quality` tiers |
+| `image_prompt_guide` | Built-in prompt handbook (tiers, recipes, on-image text, reference edits, upscale routing); returned on demand, no idle tokens |
 | `image_upscale` | 10 Vulkan presets from official upstream builds (Real-CUGAN / Real-ESRGAN / waifu2x / RealSR; MIT + BSD-3) |
 | 5 pixel tools | Resize, region marking, alpha flatten, frame animation, pose check |
 | `comfy` / `image_service_status` | ComfyUI engine start/stop, self-healing, upgrade |
 | `image_setup` | Download, verify, back up, roll back and prune models and engines |
 | `perf` / `env_probe` / `preflight` | VRAM sampling, environment checks, pre-flight gates |
 
-Toolsets are registered by profile: `minimal` 5 / `standard` 13 / `all` 15 (default `standard`).
+Toolsets are registered by profile: `minimal` 6 / `standard` 14 / `all` 16 (default `standard`).
 
 ## Size and upscaling
 

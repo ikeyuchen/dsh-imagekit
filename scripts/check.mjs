@@ -54,6 +54,7 @@ const required = [
   "LICENSE",
   "CHANGELOG.md",
   "docs/ARCHITECTURE.md",
+  "docs/PROMPTS-CORE.md",
   "docs/RELEASING.md",
   "docs/ROADMAP.md",
   "THIRD_PARTY.md"

@@ -18,7 +18,7 @@
 | | `githubProxy` | 空 | GitHub 下载代理（如 `https://ghfast.top/`）。**只在官方路径都不通时兜底**，只代理 `github.com` 链接，仍按清单 sha256 校验；实测不加速、只提升可达性 |
 | | `upscaleSource` | `official` | `official` / `sourceforge` / `custom` |
 | 性能与显存 | —— | 实时读 | 只读面板；**依赖 `perf` 工具，`minimal` 档不注册 → 面板不可用** |
-| 自动行为 | `toolsetProfile` | `standard` | `minimal` 5 件 / `standard` 13 件 / `all` 15 件 |
+| 自动行为 | `toolsetProfile` | `standard` | `minimal` 6 件 / `standard` 14 件 / `all` 16 件 |
 | | `autoDownload` | `off` | 保留字段，当前代码不会自动下载 |
 | | `autoCheckUpdates` | `on` | 保留字段，**开关不生效**（版本比对总会做） |
 | | `keepVersions` | `1` | 保留的旧版本备份份数（0–2） |

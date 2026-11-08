@@ -4,6 +4,7 @@
 
 ```
 lib/index.js        入口：注册五类工具（生成 / 处理 / 放大 / 引擎 / 性能）与资源管理
+lib/generate/       生图工具与双后端（内置直连 / 外部网关）、档位表、提示词手册（docs/PROMPTS-CORE.md）
 lib/client.js       设置页：存储位置、下载源、自动行为、组件状态与手动下载按钮
 lib/setup.js        image_setup 工具 + host 路由 + 下载器
 lib/engine/         ComfyUI 引擎管理（内聚自 dsh-plugin-comfyui）
@@ -15,6 +16,7 @@ models.manifest.json
 ## Host 侧
 
 - `lib/index.js#apply` 创建 `Config`，按 `toolsetProfile` 注册工具；
+- `image_prompt_guide` 把随包手册 `docs/PROMPTS-CORE.md` 按需读回（进程内缓存，`section` 命中小节，未命中回全文）；
 - `registerSetupTools` 注册 `image_setup`（status / verify / install / upgrade / delete / clean）；
 - `status` 返回每个组件的 `targetVersion` / `installedVersion` / `versionSource` / `updateAvailable` / `backups` / `pack` / `packLabel` / `installedPack`；
   版本来源优先级：`state.json` 记录 → 引擎 `comfyui_version.py` → 清单探测；
@@ -102,7 +104,7 @@ models.manifest.json
 
 - 版本只在对外发布时递增（见 `package.json`）；
 - `npm run check` 校验包结构、patch、必要文件；CI 同款；
-- `npm run smoke` 无宿主加载并按档位验证工具注册（minimal 5 / standard 13 / all 15）；
+- `npm run smoke` 无宿主加载并按档位验证工具注册（minimal 6 / standard 14 / all 16）；
 - `npm run test:download` 验证下载器 5 项行为；
 - `npm run test:backup` 验证引擎/模型备份与回滚、旧版本删除、`keepVersions` 清理、版本视图；
 - `npm run test:setup` 用临时目录直接调用 `image_setup.execute`，验证 status 版本字段、旧版本列表、
