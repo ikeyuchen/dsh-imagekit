@@ -195,6 +195,33 @@ for (const file of docs) {
 	}
 }
 
+// ——— K 变更日志与版本号一致 ———
+// 发布时才改版本号与 CHANGELOG，两处最容易漏一处；这里让漏一处直接失败。
+// （「未发布」标记的剥离由 scripts/release.mjs 负责，不靠人记。）
+{
+	const changelogFile = path.join(ROOT, "CHANGELOG.md");
+	if (!fs.existsSync(changelogFile)) {
+		add("K", changelogFile, 0, "缺少 CHANGELOG.md");
+	} else {
+		const text = fs.readFileSync(changelogFile, "utf8");
+		const lineNo = text.split("\n").findIndex((line) => /^##\s+\d+\.\d+\.\d+/.test(line)) + 1;
+		const heading = /^##\s+(\d+\.\d+\.\d+)\s*(?:（([^）]*)）)?/m.exec(text);
+		if (heading === null) {
+			add("K", changelogFile, lineNo, "CHANGELOG 缺少 `## x.y.z` 版本小节");
+		} else {
+			const [, logVersion, logTag] = heading;
+			if (logVersion !== pkg.version) {
+				add("K", changelogFile, lineNo, `最新小节是 ${logVersion}，package.json 是 ${pkg.version}（发布时两处要一起改）`);
+			}
+			const tag = (logTag ?? "").trim();
+			if (tag === "") add("K", changelogFile, lineNo, "版本小节要写「（未发布）」或发布日期");
+			else if (tag !== "未发布" && !/^\d{4}-\d{2}-\d{2}$/.test(tag)) {
+				add("K", changelogFile, lineNo, `版本小节的括号内容应为「未发布」或 YYYY-MM-DD，当前「（${tag}）」`);
+			}
+		}
+	}
+}
+
 // ——— 白名单自洁：分类校验 + 未使用条目清理提示 ———
 const enginesInCode = (() => {
 	const src = fs.readFileSync(path.join(ROOT, "lib/upscale.js"), "utf8");

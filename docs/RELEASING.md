@@ -19,10 +19,17 @@ npm publish --dry-run --access public
 
 ## 推送到 GitHub
 
-- **不自动推送**：用户说了才推。
+- **不自动推送**：用户说了才推；推送 = 发布，版本号与日志也在这一步确认。
 - **只推快照，不推本地历史**：GitHub 上始终只有一条无父的根提交，内容等于推送时的完整工作区；
   本地高频提交只留在本机（同步过去就是污染数据）。
-- 攒一批再推；推送前跑 `npm test` 与 `npm run test:docs`。
+- 攒一批再推；推送前跑 `npm test` 与 `npm run test:docs`（脚本会自动跑）。
+
+```bash
+npm run release            # 预演：显示标题改动与推送说明
+npm run release -- --push  # 去「未发布」→ 写日期 → npm test → 快照推送 → 核对 origin/main 只有 1 条
+```
+
+脚本做的就是下面的手动等价步骤（脚本不可用时再手搓）：
 
 ```bash
 git add -A
