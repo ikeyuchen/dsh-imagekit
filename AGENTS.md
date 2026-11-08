@@ -38,9 +38,9 @@ npm run release    # 发布预演（只显示会改什么，不动文件、不�
 
 - 本地随便提交，频率不限；**GitHub 不自动推送，用户明确说推才推**。
 - 提交格式：`<type>(<scope>): <subject>`，type ∈ feat / fix / refactor / docs / chore / test / perf。
-- **推送只发快照，不发本地历史**：本地提交只是工作记录，不是版本历史——把它同步到 GitHub 就是污染数据。
-  GitHub 上永远只有一条提交（无父的根快照），内容 = 推送时的完整工作区；攒一批再推，不要每次改动都推。
-  唯一分支是 `main`，不建开发分支、不带 tag 历史。
+- **攒一批再推**：一两处小改动不推，攒成一个阶段再推一次，避免刷出一长串提交记录。
+- **推送就是正常快进**：`git push origin main`，历史完整保留；远端有新提交时先 `git pull --rebase` 再推。
+- **不改写远端历史**：不用 `push -f`，不重建根提交，不删分支；历史只往后加。唯一分支 `main`。
 
 ### 版本号与变更日志（只在推送时写）
 
@@ -59,7 +59,7 @@ npm run release    # 发布预演（只显示会改什么，不动文件、不�
 
 ```bash
 npm run release            # 预演：标题会变成什么、推送说明是什么
-npm run release -- --push  # 真发布：去「未发布」→ 写日期 → npm test → 快照推送 → 核对只剩 1 条
+npm run release -- --push  # 真发布：去「未发布」→ 写日期 → npm test → 提交并推送
 ```
 
 脚本一次做完下面的步骤，不要手搓；`npm test` 不过会停在推送前。
@@ -67,9 +67,7 @@ npm run release -- --push  # 真发布：去「未发布」→ 写日期 → npm
 `npm publish` 前 `prepublishOnly` 跑 `release.mjs --check`，发现还写着「未发布」直接失败。
 
 ```bash
-git add -A
-SNAP=$(git commit-tree "$(git write-tree)" -m "release: <版本与一句话说明>")
-git push -f origin "$SNAP:main"
+git add -A && git commit -m "<type>(<scope>): <subject>"
+git fetch origin && git rebase origin/main   # 远端有新提交时
+npm run release -- --push                     # 去掉「未发布」、跑测试、正常推送
 ```
-
-- 推完核对 `git log --oneline origin/main` 只有 1 条；本地 `main` 不受影响（未设 upstream，误敲 `git push` 会直接报错）。

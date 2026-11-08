@@ -91,14 +91,24 @@ const test = run(npm, ["test"], { capture: false, shell: process.platform === "w
 if (test.code !== 0) fail(`npm test 未通过，已停下（CHANGELOG 标题已改，修完再跑一次）`);
 console.log("✓ npm test 通过（含文档漂移）");
 
-// —— 3. 快照推送：只发一条无父的根提交，不带本地历史 ——
+// —— 3. 提交并正常推送：保留完整历史，不 force、不重建根提交 ——
 must("git", ["add", "-A"], "git add");
-const tree = must("git", ["write-tree"], "git write-tree");
-const snapshot = must("git", ["commit-tree", tree, "-m", snapshotMessage], "git commit-tree");
-must("git", ["push", "-f", "origin", `${snapshot}:main`], "git push");
-console.log(`\n✓ 已推送快照 ${snapshot.slice(0, 7)} → origin/main`);
+const dirty = run("git", ["status", "--porcelain"]);
+if (dirty.out !== "") {
+	must("git", ["commit", "-m", snapshotMessage], "git commit");
+	console.log(`\n✓ 已提交：${snapshotMessage}`);
+} else {
+	console.log("\n✓ 工作区干净，直接推送已有提交");
+}
+must("git", ["fetch", "origin"], "git fetch");
+const push = run("git", ["push", "origin", "main"]);
+if (push.code !== 0) {
+	fail(
+		`git push 被拒绝，说明远端有新提交。先执行 git pull --rebase origin main 再跑一次。\n${push.out.split("\n").slice(-6).join("\n")}`
+	);
+}
+console.log("✓ 已推送 origin/main");
 
 const logLines = must("git", ["log", "--oneline", "origin/main"], "git log origin/main").split("\n").filter(Boolean);
-if (logLines.length !== 1) fail(`origin/main 有 ${logLines.length} 条提交（应只有 1 条）`);
-console.log(`✓ origin/main 只有 1 条提交：${logLines[0]}`);
+console.log(`✓ origin/main 现有 ${logLines.length} 条提交，最新一条：${logLines[0]}`);
 console.log("\n下一步（可选）：npm publish --access public");
