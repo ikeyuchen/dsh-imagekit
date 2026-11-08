@@ -82,7 +82,8 @@ image_generate(prompt="<按 PROMPTS.md 的六槽写>")
 ```
 
 - 默认走 `qwen_image_2_1_t2i`，**1536×1536、25 步、CFG 1.0**（`tiers.json` 为准）
-- 常用参数：`width/height`（32 的倍数）、`steps`、`seed`（复现同一张）、`batch_size`（1–8）
+- 常用参数：`width/height`（32 的倍数）、`steps`、`seed`（复现同一张）、`batch_size`（1–8）、`cfg`（默认 1.0，密集文字可 2.0）
+- 要避开的元素用 `negative_prompt`；**文字类配 `cfg` 2.0 + 40 步**才算「排版档」
 - 不传 `save_to` → 全部落 `outputDir`（默认 `<installRoot>/outputs`）
 - 慢任务加 `run_in_background: true`，再用 `job_output` 取结果；`job_list` 看全部任务，`job_kill` 取消
 - 需要完全自定义工作流时用 `image_generate_raw`（`from_template` + `node_overrides` 按节点改，或直接给整份 `workflow`）
@@ -91,7 +92,7 @@ image_generate(prompt="<按 PROMPTS.md 的六槽写>")
 
 | tier | 模板 | 步数 | 尺寸 | 用途 |
 |---|---|---|---|---|
-| `draft` | t2i_turbo | 6 | 1056² | 试构图，几秒出图 |
+| `draft` | t2i_turbo | 6 | 1056² | 试构图，几秒出图（需自备 turbo LoRA，模型包不含） |
 | `standard`（默认） | t2i | 25 | **1536²** | 常规出图 |
 | `quality` | t2i | 40 | 2048² | 终稿，分钟级 |
 
@@ -109,7 +110,8 @@ image_generate(prompt="把 <image1> 里的猫换成橘白短毛猫，其余保�
 - **传了 `ref_images` 就会自动切到编辑模板**（`qwen_image_2_1_edit`），不用手填 template
 - 参考图在 prompt 里用 `<image1> <image2> …` 指代，顺序 = `ref_images` 顺序，最多 10 张
 - 显式写了 t2i 模板又传参考图 → 会**直接报错**并提示改法（不静默丢弃参考图）
-- 多图合成用 `qwen_image_2_1_edit3`（3 张）/ `edit6`（6 张）；局部重绘强度用 `denoise`（0.4–0.7 保结构，1.0 重生成）
+- 多图合成用 `qwen_image_2_1_edit3`（3 张）/ `edit6`（6 张）；编辑画布预算用 `resolution`（默认 1056，t2i 忽略此参数）
+- 内置直连的编辑是**整图重绘**（`denoise` 固定 1.0，`0.4–0.7` 保结构属外部网关的 i2i 能力）：要只改局部，用红圈标记 + 硬边界指令
 
 ## 2.5 尺寸怎么选（原生 2K vs 放大）
 
@@ -201,9 +203,9 @@ image_upscale(input_path="<outputDir>/xxx.png")
 
 | 档位 | 工具数 | 常驻 token（tokA / tokB） | 含什么 |
 |---|---|---|---|
-| `minimal` | 6 | **1144 / 1337** | `image_generate`、`image_prompt_guide`、`image_upscale`、`image_service_status`、`image_setup`、`comfy` |
-| `standard`（默认） | 14 | **2524 / 2945** | minimal + `image_generate_raw`、`image_workflow_inspect` + 像素处理 5 件 + `perf` |
-| `all` | 16 | **2824 / 3304** | standard + `env_probe`、`preflight` |
+| `minimal` | 6 | **1229 / 1436** | `image_generate`、`image_prompt_guide`、`image_upscale`、`image_service_status`、`image_setup`、`comfy` |
+| `standard`（默认） | 14 | **2609 / 3044** | minimal + `image_generate_raw`、`image_workflow_inspect` + 像素处理 5 件 + `perf` |
+| `all` | 16 | **2909 / 3403** | standard + `env_probe`、`preflight` |
 
 口径（估算）：宿主只发 `name + description + parameters`（outputSchema 不发）+ 提示段；tokA = CJK 1.6 / ASCII 4.2 字每 token，tokB 为保守值。
 随时可复测：`npm run tokens`。

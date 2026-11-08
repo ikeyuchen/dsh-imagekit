@@ -75,6 +75,13 @@
 
 - **`unload_after` 参数此前隐式失效**：代码一直在读它，但 `image_generate` 的参数表里没有声明，
   模型根本传不进来。现已声明为布尔参数，生成后立即 `POST /free` 释放显存（10.22 GB → 1.22 GB）。
+- **参考图编辑不传 `tier` 会直接报错**：宿主会冻结工具参数，自动切编辑模板时写 `template` 触发
+  “Cannot add property template, object is not extensible”。现在先拷贝再改（修复后实测 1 图编辑 20.8 s 通过）。
+- **只装 `core` 包时完全不能出图**：直连的模型探测把 turbo 模型当必需项，干净安装（只有 `core`）会报
+  “no turbo diffusion model” 而直接失败。现改为两个 UNET 都可缺，按请求模式显式校验：要 `draft` 必须有
+  turbo 模型 + turbo LoRA，要标准档必须有 base 模型，缺什么就报缺什么并给出安装命令。
+- **`cfg` / `negative_prompt` / `resolution` 同一类问题**：请求体一直在用，工具参数表同样没声明。
+  现已补上——排版档的 `cfg 2`、负向词、编辑画布预算都能直接传，不必绕道 `image_generate_raw`。
 - **解压只保留两个方案，不再依赖用户装 7-Zip**：`.zip` 用 Node 内置 zlib 解压；`.7z` 用插件自带的官方 7-Zip 精简版
   `7zr.exe`（首次按需下载 600 KB，sha256 固定校验，落在 `<installRoot>/tools/`）。`image_setup(action="status")` 的
   `extractor:` 行显示当前解压器。已实测真实 1.9GB 引擎 7z 与 46MB 上游 zip。

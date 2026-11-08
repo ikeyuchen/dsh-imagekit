@@ -60,10 +60,11 @@ const WHITELIST = {
 	params: [
 		"save_to", "input_path", "ref_images", "run_in_background", "batch_size",
 		"from_template", "node_overrides", "prompt", "steps", "seed", "cfg", "tier",
-		"unload_after", "max_size",
+		"unload_after", "max_size", "durations_ms", "stroke_width", "character_image", "skeleton_image",
+		"negative_prompt", "resolution",
 	],
 	// 请求体内部字段（不是工具参数，模板占位符 / 网关字段）
-	requestFields: ["negative_prompt", "denoise", "resolution"],
+	requestFields: ["denoise"],
 };
 const WHITELIST_ALL = new Set(Object.values(WHITELIST).flat());
 
