@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      # prepublishOnly 会跑 check + test:docs + release --check，后者要 import lib/*.js，
+      # 缺宿主侧 peer 包会 ERR_MODULE_NOT_FOUND，所以必须先装依赖（与 ci.yml 同因）。
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Require NPM_TOKEN
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN}" ]; then
+            echo "::error::缺少仓库 secret NPM_TOKEN（Settings → Secrets and variables → Actions）。"
+            echo "在本地发布可改用：npm login 后 npm publish --access public --otp=<6 位码>"
+            exit 1
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Check
+        run: npm run check
+      - name: Publish
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

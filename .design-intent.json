@@ -1,0 +1,69 @@
+{
+  "$comment": "刻意例外声明：icon.svg 是「透明底描边字标」，DSH 会在插件列表里提供圆角容器，所以图标本身不画底板。调研与规范见 docs/ICON.md。",
+  "icon": {
+    "file": "icon.svg",
+    "kind": "glyph (transparent background)",
+    "style": "图标库网格 + 描边（Tabler 24 网格）",
+    "canvas": 24,
+    "grid": {
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.7,
+      "linecap": "round",
+      "linejoin": "round",
+      "coverage": "字形占 3–22 区间（约 80%）",
+      "why": "DSH 生态插件图标都用现成图标库网格（artkit=Phosphor 256、context=1024）。手写贝塞尔没有网格约束，36px 下会显歪；改成 24 网格后曲线来自成熟图标库。描边取 1.7 而非默认 2：同样网格下线条更精致，36px 仍有约 2.1px 有效线宽。"
+    },
+    "provenance": {
+      "source": "Tabler Icons（MIT）v3 `photo-up`",
+      "paths": [
+        "画框 / 远山 / 右坡折线 / 向上箭头：原样复用 Tabler photo-up 坐标",
+        "太阳点（6.6,7.3 r1.15）、主火花（14.4,7.8 r2.0）、小火花（18.2,4.9 r0.8）：自绘，替换原“太阳圆点”"
+      ],
+      "note": "语义：画框+远山+太阳=图片，向上箭头=放大，双火花=AI 生成"
+    },
+    "palette": {
+      "ink": [
+        "#38BDF8",
+        "#5B5BF0"
+      ],
+      "note": "单一冷色对角渐变（3,3 → 21,21），描边与火花共用；层次靠透明度/体量，不用第二套色。"
+    },
+    "deliberateExceptions": [
+      {
+        "rule": "background:contrast",
+        "reason": "刻意不画底板：DSH 插件列表自带 36px 圆角容器。"
+      },
+      {
+        "rule": "library-glyph",
+        "reason": "刻意复用图标库几何而非原创曲线：原创曲线缺少网格约束，会显歪。"
+      },
+      {
+        "rule": "thin-stroke",
+        "reason": "刻意用 1.7 而非图标库默认 2：细节元素多了以后，2 会显得拥挤；1.7 在 36px 下仍约 2.1px 有效线宽。"
+      },
+      {
+        "rule": "mixed-fill-stroke",
+        "reason": "太阳与火花用实心、其余描边：小尺寸下描边的点/星会糊，实心更稳。"
+      },
+      {
+        "rule": "progressive-detail",
+        "reason": "小火花在 36px 基本不可见，属于刻意的大尺寸细节；小尺寸靠画框、太阳点、主火花、箭头四个主形识别。"
+      }
+    ],
+    "verifiedAt": [
+      24,
+      32,
+      36,
+      48,
+      64,
+      128,
+      512
+    ],
+    "verifiedContexts": [
+      "light",
+      "dark",
+      "inside DSH plugin tile"
+    ],
+    "comparedWith": "同容器内与 dsh-artkit（Phosphor 网格）对比：本图标占比略大，笔画粗细一致"
+  }
+}

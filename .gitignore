@@ -1,0 +1,10 @@
+node_modules/
+data/
+.selftest_out/
+*.log
+*.tgz
+.DS_Store
+__pycache__/
+.smoke/
+.verify-cache/
+_tmp/
