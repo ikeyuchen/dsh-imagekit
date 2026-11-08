@@ -41,6 +41,22 @@ image_generate(prompt)
 
 采样器固定 **euler + simple**，不需要调；turbo 上游模板走 `KSamplerSelect` + `CFGGuider`。
 
+### Prompt 增强（PE）模型的显存代价
+
+`qwen3.5_9b_qwen_image_2.1_pe_t2i` / `_pe_i2i`（9B int8）**各 8.8 GB 磁盘**，实测算力显存：
+
+| 项 | 实测（RTX 5070 Ti Laptop 12 GB） |
+|---|---|
+| 加载峰值 | **9.75 GB**（常驻 9.63 GB） |
+| 释放后 | 1.23 GB（`/free` 立刻回收） |
+| 释放后再出图 | 可正常跑（turbo 1056² 7.1 秒，峰值 11.57 GB） |
+
+结论：
+
+- **PE 与出图模型不能同时驻留 12 GB 卡**（PE 就要 9.75 GB），必须两段式：先加载 PE 扩写提示词 → `/free` 释放 → 再加载出图模型。
+- **8 GB 显存跑不了 PE**（9.75 > 8），只能靠 `--lowvram` 交换，速度会非常慢；8G 用户建议直接用 PE 之外的写法（见 [PROMPTS.md](./PROMPTS.md)）。
+- 两个 PE 模型合计 17.6 GB 磁盘，只在 `full` 包里；不装 PE 不影响文生图与参考图编辑。
+
 ### 负向提示词
 
 模板支持（`__NEGATIVE__` 直连编码器），但**默认留空**。只在出现顽固缺陷时加，保持短：
