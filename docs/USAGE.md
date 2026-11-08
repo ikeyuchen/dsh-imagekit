@@ -111,7 +111,9 @@ image_generate(prompt="把 <image1> 里的猫换成橘白短毛猫，其余保�
 - 参考图在 prompt 里用 `<image1> <image2> …` 指代，顺序 = `ref_images` 顺序，最多 10 张
 - 显式写了 t2i 模板又传参考图 → 会**直接报错**并提示改法（不静默丢弃参考图）
 - 多图合成用 `qwen_image_2_1_edit3`（3 张）/ `edit6`（6 张）；编辑画布预算用 `resolution`（默认 1056，t2i 忽略此参数）
-- 内置直连的编辑是**整图重绘**（`denoise` 固定 1.0，`0.4–0.7` 保结构属外部网关的 i2i 能力）：要只改局部，用红圈标记 + 硬边界指令
+- **部分重绘（保结构）**：给一张初始图 + `denoise` 0.7–0.9（0.85 改动明显，0.45 只能打磨），直连改走 VAEEncode + KSampler 路径
+- `denoise` **不减少耗时**（ComfyUI 语义是改起始噪声水平，步数照跑），要快就同时减 `steps`
+- 不给 `denoise`（或 1.0）= 整图重绘（编辑模板）：要只改局部，用红圈标记 + 硬边界指令
 
 ## 2.5 尺寸怎么选（原生 2K vs 放大）
 
@@ -203,9 +205,9 @@ image_upscale(input_path="<outputDir>/xxx.png")
 
 | 档位 | 工具数 | 常驻 token（tokA / tokB） | 含什么 |
 |---|---|---|---|
-| `minimal` | 6 | **1229 / 1436** | `image_generate`、`image_prompt_guide`、`image_upscale`、`image_service_status`、`image_setup`、`comfy` |
-| `standard`（默认） | 14 | **2609 / 3044** | minimal + `image_generate_raw`、`image_workflow_inspect` + 像素处理 5 件 + `perf` |
-| `all` | 16 | **2909 / 3403** | standard + `env_probe`、`preflight` |
+| `minimal` | 6 | **1282 / 1497** | `image_generate`、`image_prompt_guide`、`image_upscale`、`image_service_status`、`image_setup`、`comfy` |
+| `standard`（默认） | 14 | **2662 / 3105** | minimal + `image_generate_raw`、`image_workflow_inspect` + 像素处理 5 件 + `perf` |
+| `all` | 16 | **2962 / 3464** | standard + `env_probe`、`preflight` |
 
 口径（估算）：宿主只发 `name + description + parameters`（outputSchema 不发）+ 提示段；tokA = CJK 1.6 / ASCII 4.2 字每 token，tokB 为保守值。
 随时可复测：`npm run tokens`。

@@ -22,7 +22,7 @@ apply(ctx, config)
 | `all` | 16 | standard + env_probe + preflight |
 
 分档依据：插件只有**生图**与**放大**两个功能，其余工具只在这两件事之外才用得到；
-常驻成本见 `npm run tokens`（1229 / 2609 / 2909 tokA）。
+常驻成本见 `npm run tokens`（1282 / 2662 / 2962 tokA）。
 
 所有工具共享同一个 Cordis 插件生命周期和系统提示段；`image_generate` 的引擎兜底可以直接从
 `ctx.tools.get("comfy")` 找到同包引擎工具，不再依赖外部插件是否存在。
@@ -62,6 +62,7 @@ apply(ctx, config)
 | 文生图 + 批量候选 | `image_generate`（`prompt` / `tier` / `width` / `height` / `steps` / `seed` / `batch_size`） | ✅ | ✅ |
 | 参考图编辑 | `image_generate` + `ref_images`（`*_edit` / `*_edit3` / `*_edit6` / `*_i2i`） | ✅ 按张数拼节点（实测 1/3/6） | ✅ 上限 10 |
 | 文字渲染调档 | 同 `image_generate`（`steps` / `cfg` / `negative_prompt`）+ `tier=quality` | ✅ | ✅ |
+| 部分重绘（保结构） | `image_generate` + 单张 `ref_images` + `denoise` 0.7–0.9（直连走 VAEEncode + KSampler） | ✅ | ✅ i2i 模板 |
 | 快速草稿档 | `tier=draft`（turbo LoRA）或 `template=turbo_official_t2i` | ✅ | ✅ |
 | 放大 | `image_upscale`（`engine` / `scale` / `denoise`，10 个预设） | ✅ | — |
 | 降采样 / 转格式 | `image_resize_lanczos`（`width` / `percent` / `format` / `quality`） | ✅ | — |
@@ -85,7 +86,6 @@ apply(ctx, config)
 | 裁剪 / 拼接 / 图层合成 | 无工具；编辑是整图重绘不是图层 | 用 `image_generate_raw` 跑自定义工作流，或在仓库外处理 |
 | 骨架生成 / ControlNet / LoRA / PE | 需要额外模型与专用工作流，插件只提供 `pose_check` 校验 | 配 `generationBackend=gateway` 走外部兼容网关 |
 | 编辑模式 `batch_size` | 直连的编辑图固定一图一跑（`batch_size` 只影响 t2i） | 多次调用 |
-| 部分重绘 `denoise` | 仅网关后端收录（直连固定 1.0） | 用 `cfg` / 步数 / 局部红圈代替 |
 | `draft` 档所需的 turbo LoRA | 直连的 turbo 路径 = turbo 模型 + turbo LoRA；**模型包不包含 LoRA**（`full` 也不含） | 自行放入 `models/loras/`；或改用 `standard`/`quality`（`core` 包即可） |
 | 官方 turbo 的 8 步协议 | 官方 turbo 模型配的是 ManualSigmas + CFGGuider；直连没实现，`template=turbo_official_t2i` 在直连会显式报错 | 走网关后端；或直接 `tier=standard` |
 
