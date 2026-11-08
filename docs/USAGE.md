@@ -53,16 +53,16 @@ image_upscale(input_path="<上一步输出路径>", engine="cugan")
 ### 示例提示词（README 三张配图）
 
 ```text
-# 写实：1056² / 25 步（standard）
+# 写实：1536² / 25 步（standard）
 一张写实摄影照片：一只橘白相间的短毛猫坐在浅色木质窗台上，午后阳光从左侧斜射进来，
 毛发边缘有轮廓光，背景是虚化的绿植，浅景深，50mm 定焦，柔和侧逆光，色彩自然。
 
-# 二次元：1056² / 25 步
+# 二次元：1536² / 25 步
 anime illustration of a silver-haired girl with fox ears standing under a cherry blossom tree,
 cel-shaded, clean line art, vibrant colors, detailed eyes, upper body, soft rim light,
 petals drifting in the air, shallow depth of field
 
-# 场景：1056² / 25 步
+# 场景：1536² / 25 步
 电影感风景照片：黄昏时分的山谷湖泊，湖面倒映着粉紫色晚霞与连绵远山，前景是长满野花的草坡，
 薄雾贴着水面，光线柔和通透，广角构图，色彩层次丰富，画面干净通透。
 
@@ -81,7 +81,7 @@ petals drifting in the air, shallow depth of field
 image_generate(prompt="<按 PROMPTS.md 的六槽写>")
 ```
 
-- 默认走 `qwen_image_2_1_t2i`，1056×1056、25 步、CFG 1.0
+- 默认走 `qwen_image_2_1_t2i`，**1536×1536、25 步、CFG 1.0**（`tiers.json` 为准）
 - 常用参数：`width/height`（32 的倍数）、`steps`、`seed`（复现同一张）、`batch_size`（1–8）
 - 不传 `save_to` → 全部落 `outputDir`（默认 `<installRoot>/outputs`）
 - 慢任务加 `run_in_background: true`，再用 `job_output` 取结果；`job_list` 看全部任务，`job_kill` 取消
@@ -92,12 +92,12 @@ image_generate(prompt="<按 PROMPTS.md 的六槽写>")
 | tier | 模板 | 步数 | 尺寸 | 用途 |
 |---|---|---|---|---|
 | `draft` | t2i_turbo | 6 | 1056² | 试构图，几秒出图 |
-| `standard`（默认） | t2i | 25 | 1056² | 常规出图 |
+| `standard`（默认） | t2i | 25 | **1536²** | 常规出图 |
 | `quality` | t2i | 40 | 2048² | 终稿，分钟级 |
 
 显式参数优先于档位（`tier="draft", steps=20` → 用 20 步）。
 
-**文字类需求**用 `qwen_image_2_1_cn` 模板对中文更稳；只要一句提示词、不想自己扩写，用 `qwen_image_2_1_t2i_pe`（服务端改写，见 PROMPTS.md）。
+**文字类需求**可直接把版式写进提示词（见 [PROMPTS.md](./PROMPTS.md)）；`qwen_image_2_1_cn`、`qwen_image_2_1_t2i_pe` 属旧模板，**需要外部兼容网关**（内置直连不覆盖），日常优先用默认模板。
 
 ## 2. 图生图 / 编辑
 
@@ -136,6 +136,7 @@ Qwen-Image 2.1 是**原生约 2K** 的模型：官方示例 `2048×2048`、40 �
 ![同一块 1:1 细节：传统插值 vs image_upscale ×2](upscale-detail.webp)
 
 - 8G 显存建议 ≤1536² 并选 `lowvram` 包；宽高必须是 **32 的倍数**
+- 更大画布/超分后再降采样的取舍，见 [MODEL.md 的像素预算](./MODEL.md#6-像素预算与清晰度实测经验)
 - 超过原生不建议：2560² 25 步实测 226 秒，且容易出现重复结构
 
 ## 3. 放大
@@ -153,10 +154,14 @@ image_upscale(input_path="<outputDir>/xxx.png")
 | 3D 渲染 / 通用 | `photo_hq`（x4plus 通用写实）、`realsr`（少增细节）、`esrgan_anime`（要 ×2 快速时） |
 
 - 引擎全部来自**上游官方** ncnn 构建（MIT / BSD-3）：Real-CUGAN、waifu2x、Real-ESRGAN、RealSR
-- `scale` 默认按引擎（cugan ×2、esrgan_hq/realsr ×4）；`denoise` 0–3（0 = 保细节，仅 Real-CUGAN / waifu2x）
+- 引擎怎么按内容选、后处理顺序、不该放大的情况：[MODEL.md 的放大与后处理路由](./MODEL.md#7-放大与后处理路由)
+- `scale` 默认按引擎（cugan ×2、esrgan_hq/realsr ×4）；`denoise` 只有 `cugan` 开放 0–3（×2 全档，×3/×4 仅 0/3），
+  `cugan_pro` 也支持 0/3，`waifu2x` / `cugan_cons` 固定 0
 - 输出默认 `<outputDir>/upscale/`，可传 `save_to`
 - **只吃本地文件**：先生成/下载到磁盘再放大，不吃 URL
 - 引擎没装 → 先 `image_setup(action="install", component="upscale")`（四包合计约 190 MB）
+- **带透明的图先扁平化**：`image_upscale` 不做 alpha 处理（可能静默丢透明通道），用 `image_flatten_alpha` 压到底色再放
+  （该工具在 `standard` 档；`minimal` 档请自行在外部处理）
 - 放大倍率按**最终用途**定：屏幕看图 ×2 足够；打印/裁切再上 ×4（1056² ×4 = 4224²，约 12 秒）
 
 ## 3.5 组件与旧版本

@@ -102,7 +102,7 @@ Qwen-Image 2.1 **原生约 2K**（官方示例 `2048×2048`、40 步；官方比
   &nbsp;&nbsp;
   <img src="docs/demo-scene.webp" width="300" alt="场景：黄昏山谷湖泊">
 </p>
-<p align="center"><em>写实 · 二次元 · 文字 · 场景，均由本插件本地生成（1056² / 1056² / 1024² / 1056²，提示词见 <a href="docs/USAGE.md">用法</a>）</em></p>
+<p align="center"><em>写实 · 二次元 · 文字 · 场景，均由本插件本地生成（示例图为早期 1056² 档生成；当前默认档已是 1536²，提示词见 <a href="docs/USAGE.md">用法</a>）</em></p>
 
 ## 要求
 
