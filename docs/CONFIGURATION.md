@@ -7,16 +7,16 @@
 
 | 分组 | 字段 | 默认 | 说明 |
 |---|---|---|---|
-| 存储位置 | `installRoot` | `<盘符>/AI/Tools/ImageKit`（有 D 盘用 D，否则 C；非 Windows 用 `~/AI`） | 工具分类根目录，可改成任意目录；**整体迁移可用环境变量 `IMAGEKIT_INSTALL_ROOT` 覆盖** |
+| 存储位置 | `installRoot` | `%LOCALAPPDATA%\dsh-imagekit`（非 Windows 用 `~/.local/share/dsh-imagekit`） | 工具分类根目录，打开设置页或跑 `status` 时**自动创建**；旧版默认目录存在时直接沿用；可改成任意目录，`IMAGEKIT_INSTALL_ROOT` 可整体覆盖 |
 | | `modelsRoot` | `<installRoot>\models` | 生图模型 |
-| | `engineRoot` | `<installRoot>\engine\ComfyUI_windows_portable` | ComfyUI 便携版 |
+| | `engineRoot` | `<installRoot>\engine\ComfyUI_windows_portable` | ComfyUI 便携版。默认位置没引擎时自动探测本机已有的 ComfyUI 便携版并直接复用（不下载）；复用状态下 `image_setup` 拒绝往那个目录安装/升级。`IMAGEKIT_ENGINE_DIR` 可指定其他位置 |
 | | `upscaleEnginesRoot` | `<installRoot>\upscale-engines\engines` | 放大引擎 |
 | | `outputDir` | `<installRoot>\outputs` | 生成图片目录；放大落 `outputs/upscale` |
 | 下载源 | `modelSource` | `huggingface` | `huggingface` / `hf-mirror`（第三方镜像）/ `modelscope`（第三方镜像）/ `custom` |
 | | `modelPackBaseUrl` | 空 | `custom` 时的镜像根 |
 | | `downloadConnections` | `4` | 大文件下载的分片连接数（`1`/`2`/`4`/`8`）；服务端不支持 Range 会自动回退单流 |
 | | `githubProxy` | 空 | GitHub 下载代理（如 `https://ghfast.top/`）。**只在官方路径都不通时兜底**，只代理 `github.com` 链接，仍按清单 sha256 校验；实测不加速、只提升可达性 |
-| | `upscaleSource` | `official` | `official` / `sourceforge` / `custom` |
+| | `upscaleSource` | `official` | `official` / `sourceforge`（预留，当前清单未登记地址，会回落 official）/ `custom` |
 | 性能与显存 | —— | 实时读 | 只读面板；**依赖 `perf` 工具，`minimal` 档不注册 → 面板不可用** |
 | 自动行为 | `toolsetProfile` | `standard` | `minimal` 6 件 / `standard` 14 件 / `all` 16 件 |
 | | `autoDownload` | `off` | 保留字段，当前代码不会自动下载 |
@@ -32,7 +32,7 @@
 | `vramIdleFreeMinutes` | `10` | 空闲多少分钟后让引擎卸载模型释放显存（`0` = 不自动释放） |
 | `generateTimeoutSeconds` / `processTimeoutSeconds` / `upscaleTimeoutSeconds` | 900 / 120 / 600 | 单次调用上限 |
 | `selfHealWaitSeconds` | 420 | 引擎自愈等待 |
-| `pythonCommand` / `nodePath` / `pythonPath` / `pnpmPath` | 空 | 空 = 从 PATH 探测 |
+| `pythonCommand` / `nodePath` / `pythonPath` / `pnpmPath` | 空 | 空 = 按顺序探测：DSH 自带 Python 运行时（已含 Pillow/numpy）→ PATH 上的 `python` → `py` |
 | `upscaleGpuDevice` | 0 | Vulkan 设备号 |
 | `comfyBaseUrl` | `http://127.0.0.1:8188` | ComfyUI HTTP |
 | `comfyRegistryYaml` | 空 | 模型注册表覆盖路径 |
@@ -59,14 +59,11 @@
 { "gatewayDir": "<你的网关目录>" }
 ```
 
-同类可覆盖项：`IMAGEKIT_INSTALL_ROOT`（整体换安装根）。
+同类可覆盖项：`IMAGEKIT_INSTALL_ROOT`（整体换安装根）、`IMAGEKIT_ENGINE_DIR`（指定已有 ComfyUI，免再次下载引擎）。
 
-解压相关的环境变量（排障用）：`IMAGEKIT_EXTRACTOR=7zr|zip` 强制只用一种；`SEVEN_ZIP` 指定一个 7z 可执行文件（跳过内置 7zr，仅特殊环境需要）。默认：`.zip` → Node 内置解压，`.7z` → `<installRoot>/tools/7zr.exe`（缺失时按需下载并校验 sha256）。
+解压相关的环境变量（排障用）：`IMAGEKIT_EXTRACTOR=zip` 强制 Node 内置解压；`.7z` 固定走 7zr（`IMAGEKIT_EXTRACTOR=7zr` 对 `.zip` 不生效）；`SEVEN_ZIP` 可指定本机 7z 可执行文件替代 7zr（仅特殊环境需要）。默认：`.zip` → Node 内置解压，`.7z` → `<installRoot>/tools/7zr.exe`（缺失时按需下载并校验 sha256，600 KB）。
 
-默认顺序（按归档类型）：
-- `.zip`：插件内置 Node zlib 解压（零外部依赖）；
-- `.7z`：本机 7-Zip → Windows 自带 `tar.exe`（**仅当其 `--version` 带 liblzma**，部分 Win10 不带）→ 自动下载的官方 `7zr.exe`
-  （落在 `<installRoot>/tools/7zr.exe`，600 KB，sha256 固定校验）。
+不再探测本机 7-Zip 或系统 tar；两条路径之外没有兜底链。
 
 ## 目录布局
 
@@ -80,7 +77,7 @@
 └── .imagekit/          # state.json / backups/
 ```
 
-旧位置的 junction 兼容见 [README](../README.md)。点「恢复默认」走 `image_setup action=defaults`（只读）。
+旧版默认目录存在时直接沿用（见上表）。点「恢复默认」走 `image_setup action=defaults`，会创建安装根与子目录并把默认路径填回设置页（仍需点保存）。
 
 ## 模型清单
 
@@ -90,7 +87,7 @@
 
 | pack | 组成 | 合计 | 建议显存 |
 |---|---|---|---|
-| `core`（默认） | 标准 int8 扩散 + qwen3vl int8 编码器 + VAE | 16.1 | 12G+ |
+| `core`（推荐） | 标准 int8 扩散 + qwen3vl int8 编码器 + VAE | 16.1 | 12G+ |
 | `fast` | turbo int8 扩散 + 同上 | 16.1 | 12G+，步数少 |
 | `lowvram` | 标准 int8 + **w4a8 编码器** + VAE | 13.3 | 8G |
 | `lowvram-fast` | turbo int8 + **w4a8 编码器** + VAE | 13.3 | 8G |

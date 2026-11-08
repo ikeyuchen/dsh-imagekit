@@ -17,7 +17,7 @@
               },
               "sizeBytes": 2054382457,
               "sha256": "7170c2db49c182a81adcc051e80234f99dd891656fb200737f87797876348f96",
-              "note": "固定版本 v0.44.0；下载后校验大小与 sha256，再由系统 7z 提取到 installRoot/engine。",
+              "note": "固定版本 v0.44.0；下载后校验大小与 sha256，再由内置 7zr 解压到 installRoot/engine。",
               "extractTo": "engine"
             }
           ]

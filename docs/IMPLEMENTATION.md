@@ -3,7 +3,7 @@
 ## 包结构
 
 ```
-lib/index.js        入口：注册五类工具（生成 / 处理 / 放大 / 引擎 / 性能）与资源管理
+lib/index.js        入口：注册七类工具（生成 / 处理 / 放大 / 安装 / 引擎 / 性能 / 环境）与资源管理
 lib/generate/       生图工具与双后端（内置直连 / 外部网关）、档位表、提示词手册（docs/PROMPTS-CORE.md）
 lib/client.js       设置页：存储位置、下载源、自动行为、组件状态与手动下载按钮
 lib/setup.js        image_setup 工具 + host 路由 + 下载器
@@ -17,9 +17,10 @@ models.manifest.json
 
 - `lib/index.js#apply` 创建 `Config`，按 `toolsetProfile` 注册工具；
 - `image_prompt_guide` 把随包手册 `docs/PROMPTS-CORE.md` 按需读回（进程内缓存，`section` 命中小节，未命中回全文）；
-- `registerSetupTools` 注册 `image_setup`（status / verify / install / upgrade / delete / clean）；
+- `registerSetupTools` 注册 `image_setup`（status / defaults / verify / install / upgrade / delete / clean）；
 - `status` 返回每个组件的 `targetVersion` / `installedVersion` / `versionSource` / `updateAvailable` / `backups` / `pack` / `packLabel` / `installedPack`；
-  版本来源优先级：`state.json` 记录 → 引擎 `comfyui_version.py` → 清单探测；
+  版本来源优先级：引擎以磁盘 `comfyui_version.py` 为准，其次 `state.json` 记录，最后清单探测；
+  其它组件以 `state.json` 记录为准，缺失时用清单。
 - 同一函数内通过 `ctx.inject(['connection'])` 注册两个路由：
   ```
   POST /api/dsh-imagekit/setup   body: { action, component?, pack?, confirm?, backup? }
@@ -28,10 +29,9 @@ models.manifest.json
   路由只是调用已注册的 `image_setup` / `perf` 工具，不另开写盘路径；
   鉴权与同源校验由宿主的 `connection` 服务负责，插件不自行放行跨站请求。
 - 下载器：HTTP Range 续传 + `.partial` 临时文件，校验大小/sha256 后 rename；目标路径先 `assertWithin(installRoot)`；
-  删除必须 `confirm=<component>`；归档用 `checkPath`/`checkPaths` 判断解压完成；解压只有两条路径：`.zip` 用 Node zlib 内置解压，`.7z` 用内置官方 7zr（`<installRoot>/tools/7zr.exe`，缺失时按需下载并校验 sha256；`IMAGEKIT_EXTRACTOR=7zr|zip` 可强制），
-`.zip` 用 Node zlib 内置解压，`.7z` 依次试「本机 7-Zip → Windows tar（需 `--version` 含 liblzma）→ 按需下载的官方 7zr.exe」，
-`IMAGEKIT_EXTRACTOR=7z|tar|zip|7zr` 可强制，解压后按 `extractRename` 改名、
-  整合包用 `extractGlobs` 只取需要的目录再 `extractMove`；已存在目录不覆盖。
+  删除必须 `confirm=<component>`；归档用 `checkPath`/`checkPaths` 判断解压完成。解压只有两条路径：`.zip` 用 Node zlib 内置解压；
+  `.7z` 用按需下载的官方 7zr（`<installRoot>/tools/7zr.exe`，缺失时下载并校验 sha256；`IMAGEKIT_EXTRACTOR=zip` 可强制 zip，
+  `SEVEN_ZIP` 可指定本机 7z 替代 7zr）。解压后按 `extractRename` 改名、整合包用 `extractGlobs` 只取需要的目录再 `extractMove`；已存在目录不覆盖。
 - `lib/generate/direct.js`：内置直连后端（拼 ComfyUI API 工作流 → `/prompt` → `/history` → `/view`）。
   文生图用 `UNETLoader/CLIPLoader/VAELoader/EmptyLatentImage/KSampler`；参考图编辑用 `LoadImage`（先 `/upload/image` 上传）
   + `TextEncodeQwenImage21`（输出 positive/negative/latent），turbo 模板自动挂 LoRA。
@@ -66,7 +66,7 @@ models.manifest.json
   下载时把 `pack` 传给 `image_setup`（pack 之间叠加，不互斥）；
 - 组件行显示当前版本与体积；`versionMismatch`（版本不同）显示「升级」，`needsRepair`（缺文件）显示「修复」，
   两者互斥；有任务在跑时整行动作锁住（含别的会话发起的任务）；已装齐则禁用下载、`updateAvailable` 时给「升级」，`backups` 时列出旧版本并可删；
-- 按钮分别发 `{action:'install'|'upgrade'|'delete', component, pack?, backup?}`，大文件期间每 3s 刷新状态；
+- 按钮分别发 `{action:'install'|'upgrade'|'delete', component, pack?, backup?}`，大文件期间每 1s 刷新状态；
 - 设置值来自 `SettingsFormModel`，字段值是 `{text, overridden, invalid}`：`SettingsValueField` 必须展开该对象
   （直接当 `value` 会触发 React error #31），下拉只取 `.text`。
 
@@ -78,9 +78,9 @@ models.manifest.json
 
 ## GitHub 下载兜底
 
-`downloadTo` 先用 `releases/download/<tag>/<asset>` 直链；非 2xx 且是 GitHub Release URL 时，
-`resolveGithubAsset` 走 Releases API（tag → asset id → `/releases/assets/<id>` + `application/octet-stream`），
-有 `GITHUB_TOKEN`/`GH_TOKEN` 时带 Bearer。回退失败仍按原错误上报。
+`downloadTo` 对 GitHub Release URL 先解析官方 Releases API 资产直链（tag → asset id → `/releases/assets/<id>` + `application/octet-stream`），
+其次用 `githubProxy` 代理（仅当用户显式配置），最后才用原始 `releases/download/<tag>/<asset>` 直链；
+有 `GITHUB_TOKEN`/`GH_TOKEN` 时带 Bearer。API 不可用时继续走后面的候选。
 
 ## 为什么没有自动下载
 
@@ -94,7 +94,8 @@ models.manifest.json
 
 ## 默认路径与删除按钮
 
-- `image_setup action=defaults`：Host 检查系统盘符并返回 `<installRoot>` 派生的四个路径（见 `lib/paths.js`）；
+- `image_setup action=defaults`：按 `lib/paths.js` 的规则返回默认路径（环境变量 → 旧版目录沿用 →
+  当前用户数据目录），并创建安装根与子目录；
   设置页「恢复默认」调用它，再通过 `props.edit` 填入字段（仍需用户点保存）。
 - 组件行在已安装时显示「删除」：`window.confirm` 后调用
   `image_setup action=delete component=<name> confirm=<name>`；

@@ -25,6 +25,9 @@
 dsh plugin add dsh-imagekit
 ```
 
+> Mirrors such as npmmirror lag behind; check `npm ls dsh-imagekit` after installing. If it is older than this README,
+> run `npm i dsh-imagekit@latest --registry=https://registry.npmjs.org`.
+
 **Option 3: from source** (development or unreleased builds)
 
 ```bash
@@ -36,7 +39,7 @@ dsh plugin --profile web add ./dsh-imagekit
 
 The package ships **no** model weights, ComfyUI engine or upscale engines (too large). Download them from the settings page first, otherwise generation reports missing models:
 
-1. DSH → **Plugins → imagekit (Image workshop) → Configure**
+1. DSH → **Plugins → Image Generation Studio → Configure**
 2. Confirm the install root under **Storage**
 3. Under **Components & manual download → image models**, pick one pack for your VRAM:
 
@@ -47,6 +50,8 @@ The package ships **no** model weights, ComfyUI engine or upscale engines (too l
    | 32 GB | `full` | turbo + ControlNet + dual PE encoders |
 
 4. Download the **ComfyUI engine** (~2 GB, required) and the **upscale engines** (~190 MB, optional) on the same page
+   An existing ComfyUI portable on this machine is detected and reused automatically, so this step shows ready and downloads nothing;
+   if it lives elsewhere, point `IMAGEKIT_ENGINE_DIR` at it
 5. Once every row shows *installed*, generate; see [usage](docs/USAGE.md)
 
 > Downloaded the wrong pack? Use **Delete pack** on that row — only its exclusive files are removed.
@@ -56,7 +61,8 @@ The package ships **no** model weights, ComfyUI engine or upscale engines (too l
 | Tool | What it does |
 | --- | --- |
 | `image_generate` / `image_generate_raw` | Text-to-image, reference-based edits, custom workflows; `draft` / `standard` / `quality` tiers |
-| `image_prompt_guide` | Built-in prompt handbook (tiers, recipes, on-image text, reference edits, upscale routing); returned on demand, no idle tokens |
+| `image_workflow_inspect` | Inspect the ComfyUI workflow a template submits |
+| `image_prompt_guide` | Built-in prompt handbook (tiers, recipes, on-image text, reference edits, upscale routing); returned on demand, handbook body is not idle context (tool declaration ~99 tokA) |
 | `image_upscale` | 10 Vulkan presets from official upstream builds (Real-CUGAN / Real-ESRGAN / waifu2x / RealSR; MIT + BSD-3) |
 | 5 pixel tools | Resize, region marking, alpha flatten, frame animation, pose check |
 | `comfy` / `image_service_status` | ComfyUI engine start/stop, self-healing, upgrade |
@@ -111,9 +117,11 @@ Both packs can be installed together and share the VAE and text encoder; pick `l
 ## Requirements
 
 - Windows 10/11 x64 (engine and upscale binaries are Win64 only for now).
+- **No Python install needed**: the pixel tools use the Python runtime shipped with DSH (Pillow/numpy included); it falls back to
+  `python` then `py` on PATH, and the `pythonCommand` setting can point at any interpreter that has Pillow.
 - ComfyUI and Qwen-Image weights are not bundled; check what is missing with `image_setup(action="status")`.
-- **No 7-Zip install needed**: `.7z` engine packages are unpacked by the plugin's bundled official 7-Zip standalone `7zr.exe`
-  (downloaded once, 600 KB, pinned sha256); `.zip` upscale packages are unpacked with Node's built-in zlib — both work out of the box
+- **No 7-Zip install needed**: `.7z` engine packages are unpacked by the official 7-Zip standalone `7zr.exe`, downloaded automatically on first use
+  (600 KB, pinned sha256); `.zip` upscale packages are unpacked with Node's built-in zlib — both work out of the box
   regardless of what archiver the system has.
 - **Generation works out of the box with no external service**: text-to-image and reference-image editing are submitted straight to the local ComfyUI engine (built-in direct backend — no gateway, no Python process, no window). Only legacy prompt-enhancer / ControlNet / VNCCS templates need an external compatible gateway.
 

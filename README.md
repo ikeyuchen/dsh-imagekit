@@ -25,6 +25,9 @@
 dsh plugin add dsh-imagekit
 ```
 
+> 国内镜像（npmmirror）同步有延迟，装到的可能是旧版本。装完用 `npm ls dsh-imagekit` 看一下版本；
+> 比 README 旧就直接 `npm i dsh-imagekit@latest --registry=https://registry.npmjs.org`。
+
 **方式三：源码**（开发或未发布版本）
 
 ```bash
@@ -37,7 +40,7 @@ dsh plugin --profile web add ./dsh-imagekit
 插件本体**不含**模型、ComfyUI 引擎与放大引擎（体积太大，不随包分发）。装完必须先去设置页下载，否则生图会报缺模型：
 
 1. DSH →「插件」→「图像生成工坊」→「配置」
-2. 「存储位置」确认安装根目录（默认 `<盘符>/AI/Tools/ImageKit`，可整盘迁移）
+2. 「存储位置」确认安装根目录（默认 `%LOCALAPPDATA%\dsh-imagekit`，旧版装过的机器沿用原目录；可直接改到大容量磁盘）
 3. 「组件与手动下载」→ **生图模型**：按显存选一个包下载
 
    | 显存 | 选这个包 | 说明 |
@@ -47,6 +50,8 @@ dsh plugin --profile web add ./dsh-imagekit
    | 32 GB | `full` | 含 turbo + ControlNet + PE 双编码器 |
 
 4. 同页下载 **ComfyUI 引擎**（约 2 GB，生图必需）与 **图片放大引擎**（约 190 MB，可选）
+   本机已经有一份 ComfyUI 便携版时插件会自动复用它，这一步显示「已就绪」就不用再下；
+   位置在别处就设环境变量 `IMAGEKIT_ENGINE_DIR` 指向那个目录
 5. 都显示「已安装」后即可生图；具体用法见 [用法](docs/USAGE.md)
 
 > 装错了包可以只删那一个：模型包行右侧的「删除该包」只清掉它独有的文件。
@@ -56,7 +61,8 @@ dsh plugin --profile web add ./dsh-imagekit
 | 工具 | 说明 |
 | --- | --- |
 | `image_generate` / `image_generate_raw` | 文生图、参考图改图、任意工作流；`draft` / `standard` / `quality` 三档 |
-| `image_prompt_guide` | 内置提示词手册（选档 / 分类配方 / 文字渲染 / 参考图编辑 / 放大路由），按需返回，不占常驻 token |
+| `image_workflow_inspect` | 查看某个工作流模板实际提交的 ComfyUI 图 |
+| `image_prompt_guide` | 内置提示词手册（选档 / 分类配方 / 文字渲染 / 参考图编辑 / 放大路由），按需返回，手册正文不占常驻；工具声明约 99 tokA |
 | `image_upscale` | Real-CUGAN / Real-ESRGAN / waifu2x / RealSR 共 10 个预设（上游官方 MIT/BSD 构建），Vulkan 直通 GPU |
 | 像素处理 5 件 | 降采样、红圈标记、透明扁平化、动图合成、姿势检查 |
 | `comfy` / `image_service_status` | ComfyUI 引擎启停、自愈、升级 |
@@ -84,6 +90,8 @@ Qwen-Image 2.1 **原生约 2K**（官方示例 `2048×2048`、40 步；官方比
 
 ![二次元 1024² 放大 ×2：传统插值 / cugan / cugan_pro，同一块 1:1 细节](docs/anime-upscale.webp)
 
+![同一块 1:1 细节：原生 2048² vs 1056² 放大 ×2](docs/native-vs-upscale.webp)
+
 ## 模型
 
 | 包 | 步数 | 说明 |
@@ -109,8 +117,10 @@ Qwen-Image 2.1 **原生约 2K**（官方示例 `2048×2048`、40 步；官方比
 ## 要求
 
 - Windows 10/11 x64（引擎与超分二进制目前只有 Win64 版本）。
+- **不需要自己装 Python**：像素工具（缩放、标记、扁平化、动图）默认用 DSH 自带的 Python 运行时（已含 Pillow/numpy）；
+  没有时依次试 `python`、`py`，都不行用配置项 `pythonCommand` 指定一个装好 Pillow 的解释器。
 - ComfyUI 与 Qwen-Image 权重不随包分发，缺什么用 `image_setup(action="status")` 查。
-- **不需要装 7-Zip**：引擎包（`.7z`）用插件内置的官方 7-Zip 精简版 `7zr.exe`（首次自动下载 600 KB，sha256 固定校验），
+- **不需要装 7-Zip**：引擎包（`.7z`）用插件按需下载的官方 7-Zip 精简版 `7zr.exe`（首次解压时自动下载 600 KB，sha256 固定校验），
   放大引擎包（`.zip`）用 Node 内置 zlib 解压——两种格式都开箱可用，不依赖系统里有没有解压软件。
 - **生图开箱即用，不需要任何外部服务**：文生图与参考图编辑都由插件直接向本机 ComfyUI 提交工作流（内置直连，无网关、无 Python 进程、无窗口）。
   只有 Prompt 增强 / ControlNet / VNCCS 等旧模板才需要外部兼容网关。

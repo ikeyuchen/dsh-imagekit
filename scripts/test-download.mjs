@@ -13,7 +13,7 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'no
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
-const { downloadTo, proxiedUrl } = await import(new URL('../lib/setup.js', import.meta.url).href)
+const { downloadTo, proxiedUrl, formatError } = await import(new URL('../lib/setup.js', import.meta.url).href)
 
 const payload = Buffer.alloc(512 * 1024)
 for (let i = 0; i < payload.length; i += 1) payload[i] = i % 251
@@ -285,11 +285,57 @@ if (fallbackRes.connections !== 1) fail(`expected fallback to single stream, got
 if (!readFileSync(fallbackDest).equals(bigPayload)) fail('fallback download differs from source')
 console.log('✓ falls back to single stream when the server ignores Range')
 
+// 分片请求持续失败 → 回退单流并清掉 .partial.N（否则残留分段会占 GB 空间、下次还走同一段路）
+const flakyServer = createServer((req, res) => {
+  const raw = String(req.headers.range ?? '')
+  const m = /^bytes=(\d+)-(\d*)$/.exec(raw)
+  const isProbe = m !== null && m[1] === '0' && m[2] === '0'
+  const isPart = m !== null && !isProbe && m[2] !== '' && Number(m[2]) > Number(m[1])
+  if (isPart) {
+    res.writeHead(500, { 'content-type': 'text/plain' })
+    res.end('boom')
+    return
+  }
+  const start = m ? Number(m[1]) : 0
+  const slice = bigPayload.subarray(start)
+  res.writeHead(m ? 206 : 200, {
+    'content-type': 'application/octet-stream',
+    'content-length': String(slice.length),
+    'accept-ranges': 'bytes',
+    ...(m ? { 'content-range': `bytes ${start}-${bigPayload.length - 1}/${bigPayload.length}` } : {}),
+  })
+  res.end(slice)
+})
+await new Promise((resolve) => flakyServer.listen(0, '127.0.0.1', resolve))
+const flakyDest = path.join(dir, 'flaky.bin')
+const flakyRes = await downloadTo(`http://127.0.0.1:${flakyServer.address().port}/x`, flakyDest, {
+  sizeBytes: bigPayload.length,
+  sha256: bigSha,
+  connections: 4,
+})
+if (flakyRes.connections !== 1) fail(`expected single-stream fallback, got ${flakyRes.connections}`)
+if (!readFileSync(flakyDest).equals(bigPayload)) fail('fallback after part failures produced wrong bytes')
+for (let i = 0; i < 4; i += 1) {
+  if (existsSync(`${flakyDest}.partial.${i}`)) fail(`stale part file left behind: .partial.${i}`)
+}
+console.log('✓ 分片持续失败时回退单流并清理分段文件')
+
+// 错误文案：对象被 throw 时不能变成 [object Object]
+if (formatError(new Error('boom')) !== 'boom') fail('formatError(Error) should return the message')
+if (formatError('plain') !== 'plain') fail('formatError(string) should pass through')
+if (formatError({ code: 'ETIMEDOUT', url: 'x' }) !== '{"code":"ETIMEDOUT","url":"x"}') {
+  fail(`formatError(object) unexpected: ${formatError({ code: 'ETIMEDOUT', url: 'x' })}`)
+}
+if (formatError(undefined) !== 'unknown error') fail('formatError(undefined) should be readable')
+console.log('✓ 错误文案对 Error / 字符串 / 对象都可读')
+
 multiServer.closeAllConnections?.()
 multiServer.close()
 noRangeServer.closeAllConnections?.()
+flakyServer.closeAllConnections?.()
+flakyServer.close()
 noRangeServer.close()
 
 server.close()
 rmSync(dir, { recursive: true, force: true })
-console.log('\n✓ 下载器 12 项检查全部通过')
+console.log('\n✓ 下载器 14 项检查全部通过')

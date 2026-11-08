@@ -103,7 +103,7 @@
 4. 冒烟出图：t2i 一张、参考图改图一张、`image_upscale` 一张；记录耗时与显存，和旧版本基线对比。
 5. 节点兼容核对：出图不报错不等于没走偏，至少核对模板用到的节点与关键参数仍然存在。
 6. 更新 `CHANGELOG.md` 的用户可见说明，并同步本文档里过时的版本描述。
-7. `npm run check` 与 `npm run test:docs` 必须通过；合并前跑一遍 `npm test`。
+7. `npm run check` 与 `npm run test:docs` 必须通过；推送前跑一遍 `npm test`。
 
 ## 分发方式：官方源 vs 自建镜像
 
@@ -127,7 +127,7 @@
 | 网络 | 和官方源同一个 GitHub 域，**不会**绕开「github.com 直连不通」的网络问题；真正提高可达性的是多源（`mirror` + 上游官方 + 用户自建 `modelPackBaseUrl`），下载器已对 GitHub release 链接优先解析官方 API 资产直链 |
 | 维护 | 镜像要跟着清单版本更新，过期的镜像等于安全债；旧版本资产要么保留（可回滚），要么写清保留策略 |
 
-当前仓库**不在 git 里分发任何二进制**，清单里只登记 `sources.official`（上游官方 release）；`sources.mirror` 是预留的可选槽位，需要时加即可，不改代码。
+当前仓库**不在 git 里分发任何二进制**；引擎与放大条目只登记 `sources.official`（上游官方 release），模型条目登记 `sources.huggingface` / `hf-mirror`。`sources.mirror` 是预留的可选槽位，需要时加即可，不改代码。
 
 ## 下载路径实测（2026-11-08，本机 5070 Ti / 家用宽带）
 

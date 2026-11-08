@@ -350,6 +350,23 @@ try {
   const freshStatus = await freshTools[0].execute({ action: 'status' }, {})
   assert(freshStatus.ok && freshStatus.components.find((c) => c.component === 'models').installed, 'fresh install should report installed')
   console.log('✓ first install into a non-existent installRoot creates every directory it needs')
+
+  // status 是只读动作，但也要把安装根建出来：设置页一打开就该看到真实存在的目录。
+  const statusOnlyRoot = path.join(root, 'status-only-root')
+  const statusTools = []
+  registerSetupTools(
+    {
+      tools: { register: (tool) => statusTools.push(tool), get: () => undefined },
+      effect: () => {},
+      inject: undefined,
+    },
+    { pluginRoot: ROOT, config: { ...config, installRoot: statusOnlyRoot } }
+  )
+  const statusResult = await statusTools[0].execute({ action: 'status' }, {})
+  assert(existsSync(statusOnlyRoot), 'status should create installRoot')
+  assert(existsSync(path.join(statusOnlyRoot, 'models')), 'status should create models dir')
+  assert(/created \d+ directories/.test(statusResult.message), `status should report created dirs: ${statusResult.message.slice(0, 200)}`)
+  console.log('✓ status creates the install root instead of showing a phantom path')
   progServer.closeAllConnections?.()
   progServer.close()
 

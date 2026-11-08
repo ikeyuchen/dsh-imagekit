@@ -8,12 +8,12 @@
 插件本体不含模型与引擎。**装完插件先去设置页下载**，否则第一次生图会报缺模型：
 
 1. DSH →「插件」→「图像生成工坊」→「配置」
-2. 「存储位置」确认安装根目录（默认 `<盘符>/AI/Tools/ImageKit`）
+2. 「存储位置」确认安装根目录（默认 `%LOCALAPPDATA%\dsh-imagekit`，旧版装过的机器沿用原目录）
 3. 「组件与手动下载」→ 生图模型，按显存选包：12G 用 `core` / `fast`，8G 用 `lowvram` / `lowvram-fast`，32G 用 `full`
 4. 同页下载 ComfyUI 引擎（约 2 GB，必需）、图片放大引擎（约 190 MB，可选）
 5. 全部显示「已安装」即可继续；装错了用该行「删除该包」只删那一个
 
-> 解压**不需要**你装 7-Zip：`.7z` 引擎包由插件内置的官方 7zr（首次自动下载 600 KB）解压，`.zip` 放大包由 Node 内置解压。
+> 解压**不需要**你装 7-Zip：`.7z` 引擎包由插件按需下载的官方 7zr（首次 600 KB）解压，`.zip` 放大包由 Node 内置解压。
 > `image_setup(action="status")` 会显示当前用的解压器（`extractor:` 一行）。
 
 命令行等价写法（不确定用哪个包时先跑 status）：
@@ -23,7 +23,7 @@
 | 生图引擎（ComfyUI） | `comfy(action="status")` | 设置页组件区，或 `image_setup(action="install", component="engine")` |
 | 生图模型权重 | `image_setup(action="status")` | `image_setup(action="install", component="models", pack="core")`（**pack 必填**，按显存选） |
 | 放大引擎 | `image_setup(action="status")` | `image_setup(action="install", component="upscale")` |
-| 显存够不够 | `preflight` / `perf(action="snapshot")` | 12G 用默认档；8G 装 `lowvram` 包 |
+| 显存够不够 | `perf(action="snapshot")`（`preflight` 需 `all` 档） | 12G 用默认档；8G 装 `lowvram` 包 |
 
 `image_setup(action="status")` 会同时给出**已装版本、缺什么、可升级到哪个版本**；
 模型包是**可叠加**的（`core` 标准 + `fast` turbo 可以同时装），不必二选一。
@@ -47,7 +47,7 @@ image_upscale(input_path="<上一步输出路径>", engine="cugan")
 三条经验（都是实测，见 [MODEL.md](./MODEL.md)）：
 
 1. **提示词写成一句话的画面描述**，别堆 `masterpiece, 8k, --ar 3:2`；
-2. **迭代用 `draft`**：官方 turbo 8 步实测画质接近 25 步（SSIM 0.93），时间约一半；
+2. **迭代用 `draft`**：官方 turbo 8 步实测画质接近 25 步（SSIM 0.93），时间约 1/3；
 3. **画幅用 `width`/`height`**（32 的倍数），不要写进提示词。
 
 ### 示例提示词（README 四张配图，均为 `quality` 档 2048² / 40 步）
@@ -103,7 +103,7 @@ image_generate(prompt="<按 PROMPTS.md 的六槽写>")
 
 | tier | 模板 | 步数 | 尺寸 | 用途 |
 |---|---|---|---|---|
-| `draft` | t2i_turbo | 8 | 1056² | 试构图，约 8–10 秒（官方 turbo 协议，需 `fast` 包；无 turbo 模型时退回 6 步 LoRA） |
+| `draft` | t2i_turbo | 8 | 1056² | 试构图，约 8–10 秒（官方 turbo 协议，需 `fast` 包；没有 turbo 模型但本地已有 `*turbo*` LoRA 时回退 6 步 LoRA，两者都没有会报错） |
 | `standard`（默认） | t2i | 25 | **1536²** | 常规出图 |
 | `quality` | t2i | 40 | 2048² | 终稿，分钟级 |
 
@@ -172,8 +172,8 @@ image_upscale(input_path="<outputDir>/xxx.png")
 
 - 引擎全部来自**上游官方** ncnn 构建（MIT / BSD-3）：Real-CUGAN、waifu2x、Real-ESRGAN、RealSR
 - 引擎怎么按内容选、后处理顺序、不该放大的情况：[MODEL.md 的放大与后处理路由](./MODEL.md#7-放大与后处理路由)
-- `scale` 默认按引擎（cugan ×2、esrgan_hq/realsr ×4）；`denoise` 只有 `cugan` 开放 0–3（×2 全档，×3/×4 仅 0/3），
-  `cugan_pro` 也支持 0/3，`waifu2x` / `cugan_cons` 固定 0
+- `scale` 默认按引擎（cugan ×2、esrgan_hq/realsr ×4）；`denoise` 的取值：`cugan` ×2 支持 0–3，×3/×4 仅 0/3；
+  `cugan_pro` 仅 0/3，`waifu2x` / `cugan_cons` 固定 0
 - 输出默认 `<outputDir>/upscale/`，可传 `save_to`
 - **只吃本地文件**：先生成/下载到磁盘再放大，不吃 URL
 - 引擎没装 → 先 `image_setup(action="install", component="upscale")`（四包合计约 190 MB）
@@ -218,9 +218,9 @@ image_upscale(input_path="<outputDir>/xxx.png")
 
 | 档位 | 工具数 | 常驻 token（tokA / tokB） | 含什么 |
 |---|---|---|---|
-| `minimal` | 6 | **1282 / 1497** | `image_generate`、`image_prompt_guide`、`image_upscale`、`image_service_status`、`image_setup`、`comfy` |
-| `standard`（默认） | 14 | **2662 / 3105** | minimal + `image_generate_raw`、`image_workflow_inspect` + 像素处理 5 件 + `perf` |
-| `all` | 16 | **2962 / 3464** | standard + `env_probe`、`preflight` |
+| `minimal` | 6 | **1366 / 1595** | `image_generate`、`image_prompt_guide`、`image_upscale`、`image_service_status`、`image_setup`、`comfy` |
+| `standard`（默认） | 14 | **2746 / 3203** | minimal + `image_generate_raw`、`image_workflow_inspect` + 像素处理 5 件 + `perf` |
+| `all` | 16 | **3046 / 3562** | standard + `env_probe`、`preflight` |
 
 口径（估算）：宿主只发 `name + description + parameters`（outputSchema 不发）+ 提示段；tokA = CJK 1.6 / ASCII 4.2 字每 token，tokB 为保守值。
 随时可复测：`npm run tokens`。

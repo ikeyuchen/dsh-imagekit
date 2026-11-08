@@ -24,8 +24,8 @@
 | `width` / `height` | 由档位决定（draft 1056² / standard 1536² / quality 2048²） | 32 的倍数；模型原生 ≈4MP（2048²），官方比例表 2048²–2752×1536 | 默认档 1536²（25 步，12G 约 50 秒）；成片 2048²/40 步（约 170 秒）；草稿 1056²；**超过原生不建议**（2560² 25 步 226 秒且易重复） |
 | `seed` | -1（随机） | 整数 | 复现同一张：填上次结果里的 seed |
 | `batch_size` | 1 | 1–8 | 一次出多张再挑；显存占用线性增长 |
-| `denoise` | 1.0 | 0.05–1.0 | **只对 i2i 有效**：0.4–0.7 保结构改内容，1.0 完全重画 |
-| `resolution` | 1024（edit 1056） | 512–2048 | **t2i 上无效**（模板写死），仅编辑模板生效（见 §5.1） |
+| `denoise` | 1.0 | 0.05–1.0 | **只对 i2i 有效**：0.4–0.6 只做轻微打磨，0.7–0.9 保结构改内容，1.0 完全重画 |
+| `resolution` | 1056（t2i 忽略） | 512–2048 | **t2i 上无效**（模板写死 1024），仅编辑模板生效（见 §5.1） |
 | `negative_prompt` | 空 | 文本 | 出现稳定缺陷时再加，见下 |
 
 采样器固定 **euler + simple**，不需要调；turbo 上游模板走 `KSamplerSelect` + `CFGGuider`。
@@ -61,7 +61,7 @@
 | 模板 | 用途 | 关键差异 |
 |---|---|---|
 | `qwen_image_2_1_t2i` | 默认文生图 | 25 步，euler/simple |
-| `qwen_image_2_1_t2i_turbo` | 草稿 | 内置直连走**官方 8 步协议**（`ManualSigmas` + `CFGGuider`，只要 turbo 模型）；没有 turbo 模型时回退 6 步 turbo LoRA（`Qwen-Image-2.1-viggle-turbo-v0.3-6step-lora-r256`） |
+| `qwen_image_2_1_t2i_turbo` | 草稿 | 内置直连走**官方 8 步协议**（`ManualSigmas` + `CFGGuider`，只要 turbo 模型）；没有 turbo 模型、但本地已有 turbo LoRA 时回退 6 步（`Qwen-Image-2.1-viggle-turbo-v0.3-6step-lora-r256`），两者都没有会报错 |
 | `qwen_image_2_1_t2i_pe` | 文生图 + 服务端改写 | 多一个 `TextGenerate` 节点，把短提示词扩写成画面描述 |
 | `qwen_image_2_1_turbo_official_t2i` | 上游 turbo | `ManualSigmas`（8 步）+ `CFGGuider` + `SamplerCustomAdvanced`；内置直连的 `draft` 档就是这套 |
 | `qwen_image_2_1_cn` | 中文文字渲染 | 尺寸写死 1024² |
@@ -93,7 +93,7 @@
 | 设置 | 结果 | 耗时 |
 |---|---|---|
 | `resolution: 512` | 与基线**逐字节相同** | 23.3s |
-| `resolution: 1024`（默认） | 基线 | 27.0s |
+| `resolution: 1024`（网关模板字面量） | 基线 | 27.0s |
 | `resolution: 2048` | 与基线**逐字节相同** | **3.4s**（ComfyUI 图缓存命中，没重算） |
 
 原因看模板就知道：外部兼容网关的模板文件里 `resolution` 是**字面量 1024**，
@@ -189,7 +189,7 @@ image_generate(prompt="…", width=2752, height=1536, steps=25)   # 16:9 宽幅
 | 大图保真 / 保笔触 | `waifu2x` | ×2，降噪固定 0 | 保真度最高档，适合「不想改画风」 |
 | 半写实 | `waifu2x` / `waifu2x_photo` | ×2，降噪 0 | 要增强用 `cugan_pro`（×2/×3） |
 | 写实照片 | `waifu2x_photo` | ×2，降噪 0 | 屏幕看图够用；打印级上 `photo_hq` ×4 |
-| 明显劣化图（噪声 + JPEG 块） | `cugan` | ×2，降噪 1–3 | 降噪 1–3 只有 `cugan` 的 ×2 档开放；`cugan_pro` 仅 0/3，`waifu2x` / `waifu2x_photo` 固定 0（要 n2/n3 得用插件外 CLI）。本次样本少，收益属经验值 |
+| 明显劣化图（噪声 + JPEG 块） | `cugan` | ×2，降噪 1–3 | 降噪 1/2 只有 `cugan` ×2 支持；`cugan` ×3/×4 与 `cugan_pro` 仅 0/3；`waifu2x` / `waifu2x_photo` 固定 0（要 n1/n2 得用插件外 CLI）。本次样本少，收益属经验值 |
 
 - **本插件不处理 alpha**：`image_upscale` 只校验文件头，不做透明通道检测，直接把 RGBA 喂给引擎可能**静默丢掉透明通道**。
   所以：成品不需要透明时，先 `image_flatten_alpha` 压到底色再放大（该工具在 `standard` 档）；

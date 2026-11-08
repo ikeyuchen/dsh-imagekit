@@ -1,6 +1,6 @@
 {
   "name": "dsh-imagekit",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "本地生图与放大：Qwen-Image 生成 / 改图、Vulkan 超分、像素处理，附 ComfyUI 引擎与显存监测（DeepSeek Harness 插件）",
   "license": "MIT",
   "author": "ikeyuchen (https://github.com/ikeyuchen)",
@@ -87,7 +87,8 @@
     "test:setup": "node scripts/test-setup-tool.mjs",
     "test:upscale": "node scripts/test-upscale-archive.mjs",
     "test:output": "node scripts/test-output-dir.mjs",
-    "test": "npm run check && npm run test:download && npm run test:backup && npm run test:setup && npm run test:upscale && npm run test:output && npm run test:prompt && npm run test:route && npm run test:docs",
+    "test:paths": "node scripts/test-paths.mjs",
+    "test": "npm run check && npm run test:download && npm run test:backup && npm run test:setup && npm run test:upscale && npm run test:output && npm run test:paths && npm run test:prompt && npm run test:route && npm run test:docs",
     "prepublishOnly": "npm run check && npm run test:docs && node scripts/release.mjs --check",
     "test:prompt": "node scripts/test-prompt-routing.mjs",
     "tokens": "node scripts/token-report.mjs",
@@ -105,7 +106,7 @@
     "@deepseek-ai/schemastery": "~3.18.4"
   },
   "engines": {
-    "node": ">=22.19.0",
+    "node": "^22.19.0 || >=24.0.0",
     "dsh": ">=0.2.0-rc.2 <0.3.0"
   }
 }

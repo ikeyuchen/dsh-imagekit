@@ -12,7 +12,7 @@
 ```bash
 npm run check      # 包结构 / 语法 / 发布边界
 npm run test:docs  # 文档漂移（链接、路径、工具名、配置键、数量）
-npm test           # 全套离线自测（check + 7 套 + 路由 + 文档漂移），改完必跑
+npm test           # 全套离线自测（check + 6 套 + 路由 + 文档漂移），改完必跑
 npm run test:e2e   # 真实大文件回归（默认跳过；IMAGEKIT_E2E=1 才跑，拉 ~190MB）
 npm run release    # 发布预演（只显示会改什么，不动文件、不推送）
 ```
@@ -25,26 +25,26 @@ npm run release    # 发布预演（只显示会改什么，不动文件、不�
 - 新增数据文件时同步 `package.json` 的 `files` 与 `THIRD_PARTY.md` 的来源表。
 - 默认下载源保持官方（`huggingface` / GitHub Releases）；第三方镜像只作显式选项。
 - 删除/升级只操作清单登记路径，必须二次确认；junction 根拒绝删除。
-- 大文件下载只能由用户手动触发，不自动下载；版本号只在对外发布时递增。
+- 大文件下载只能由用户手动触发，不自动下载；版本号只在准备发布时递增。
 - 平台：本插件是 Windows x64 向（ComfyUI 便携引擎与超分二进制都是 `.exe`）。
 - 提示词文档分两层、不要互相复制：内置核心版是 `docs/PROMPTS-CORE.md`（随包分发，由 `image_prompt_guide`
   按需返回，不依赖 DSH 技能）；另一层是探索版 `docs/PROMPTS.md`。新增提示词文件放 `docs/`，命名 `PROMPTS*.md`。
 
 ## 改工具签名或描述时
 
-- 跑 `npm run tokens`，同步 README 的 token 数字、`docs/USAGE.md`、`locale/*.json`，并在下次发布时记进 `CHANGELOG.md`。
+- 跑 `npm run tokens`，同步 `docs/ARCHITECTURE.md` 与 `docs/USAGE.md` 的 token 数字、`locale/*.json` 的文案，并在下次发布时记进 `CHANGELOG.md`。
 
 ## 提交与推送
 
-- 本地随便提交，频率不限；**GitHub 不自动推送，用户明确说推才推**。
-- 提交格式：`<type>(<scope>): <subject>`，type ∈ feat / fix / refactor / docs / chore / test / perf。
-- **攒一批再推**：一两处小改动不推，攒成一个阶段再推一次，避免刷出一长串提交记录。
-- **推送就是正常快进**：`git push origin main`，历史完整保留；远端有新提交时先 `git pull --rebase` 再推。
-- **不改写远端历史**：不用 `push -f`，不重建根提交，不删分支；历史只往后加。唯一分支 `main`。
+- 本地随便提交，格式 `<type>(<scope>): <subject>`（type ∈ feat / fix / refactor / docs / chore / test / perf）。
+- **不自动推送**：用户明确说推才推。
+- **推送前合成一笔**：把攒下的本地提交合并成一个提交（squash），GitHub 每推一次只多一条记录。
+- **只追加、不改写**：`git push origin main` 正常快进，不用 `push -f`；远端有新提交先
+  `git fetch origin && git rebase origin/main` 再合成。唯一分支 `main`。
 
-### 版本号与变更日志（只在推送时写）
+### 版本号与变更日志（准备发布时才写）
 
-推送 = 对外发布的那一刻，所以只有这时才动这两处；本地日常提交不改版本号、不写日志。
+日常提交不改版本号、不写日志。准备发布时先升版本、在 `CHANGELOG.md` 顶部攒一个「（未发布）」小节；推送时由 `npm run release -- --push` 去标记、写日期并合成一笔推送。
 
 - 版本号 `主.次.补丁`，本仓库管得宽松：**补丁位就是「又一次发布」，不按十进制进位**（`0.0.9` 之后是
   `0.0.10`，不是 `0.1.0`），没有上限，修个 bug 也能发一个；次位只在确实想做大阶段划分时才动。
@@ -59,15 +59,10 @@ npm run release    # 发布预演（只显示会改什么，不动文件、不�
 
 ```bash
 npm run release            # 预演：标题会变成什么、推送说明是什么
-npm run release -- --push  # 真发布：去「未发布」→ 写日期 → npm test → 提交并推送
+npm run release -- --push  # 真发布：去「未发布」→ 写日期 → npm test → 合成一笔并推送
 ```
 
-脚本一次做完下面的步骤，不要手搓；`npm test` 不过会停在推送前。
+脚本一次做完，不要手搓；`npm test` 不过会停在推送前。最后一步把本地提交压成一条
+`release: x.y.z` 再正常快进推送，远端历史只追加、不改写。
 两道闸不靠记性：`doc-drift` 的 K 规则校验「CHANGELOG 最新小节 == package.json 版本」，
 `npm publish` 前 `prepublishOnly` 跑 `release.mjs --check`，发现还写着「未发布」直接失败。
-
-```bash
-git add -A && git commit -m "<type>(<scope>): <subject>"
-git fetch origin && git rebase origin/main   # 远端有新提交时
-npm run release -- --push                     # 去掉「未发布」、跑测试、正常推送
-```

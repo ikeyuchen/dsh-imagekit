@@ -22,7 +22,7 @@ apply(ctx, config)
 | `all` | 16 | standard + env_probe + preflight |
 
 分档依据：插件只有**生图**与**放大**两个功能，其余工具只在这两件事之外才用得到；
-常驻成本见 `npm run tokens`（1282 / 2662 / 2962 tokA）。
+常驻成本见 `npm run tokens`（1366 / 2746 / 3046 tokA）。
 
 所有工具共享同一个 Cordis 插件生命周期和系统提示段；`image_generate` 的引擎兜底可以直接从
 `ctx.tools.get("comfy")` 找到同包引擎工具，不再依赖外部插件是否存在。
@@ -63,7 +63,7 @@ apply(ctx, config)
 | 参考图编辑 | `image_generate` + `ref_images`（`*_edit` / `*_edit3` / `*_edit6` / `*_i2i`） | ✅ 按张数拼节点（实测 1/3/6） | ✅ 上限 10 |
 | 文字渲染调档 | 同 `image_generate`（`steps` / `cfg` / `negative_prompt`）+ `tier=quality` | ✅ | ✅ |
 | 部分重绘（保结构） | `image_generate` + 单张 `ref_images` + `denoise` 0.7–0.9（直连走 VAEEncode + KSampler） | ✅ | ✅ i2i 模板 |
-| 快速草稿档 | `tier=draft`：直连走**官方 turbo 8 步协议**（`ManualSigmas` + `CFGGuider`，需 `fast` 包，不需 LoRA）；无 turbo 模型时回退 6 步 LoRA | ✅ | ✅ |
+| 快速草稿档 | `tier=draft`：直连走**官方 turbo 8 步协议**（`ManualSigmas` + `CFGGuider`，需 `fast` 包）；没有 turbo 模型、但本地已有 `*turbo*` LoRA 时回退 6 步 LoRA，两者都没有会报错 | ✅ | ✅ |
 | 放大 | `image_upscale`（`engine` / `scale` / `denoise`，10 个预设） | ✅ | — |
 | 降采样 / 转格式 | `image_resize_lanczos`（`width` / `percent` / `format` / `quality`） | ✅ | — |
 | 透明扁平化 | `image_flatten_alpha`（`background` / `format`） | ✅ | — |
