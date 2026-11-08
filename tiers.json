@@ -1,0 +1,23 @@
+{
+  "draft": {
+    "template": "qwen_image_2_1_t2i_turbo",
+    "steps": 8,
+    "width": 1056,
+    "height": 1056,
+    "description": "快速草稿：官方 turbo 8 步协议（需 fast 包；没有 turbo 模型时退回 6 步 turbo LoRA），约 8–10 秒，画质接近 standard；用于构图与提示词迭代"
+  },
+  "standard": {
+    "template": "qwen_image_2_1_t2i",
+    "steps": 25,
+    "width": 1536,
+    "height": 1536,
+    "description": "默认出图：25 步 × 1536²（约为模型原生 2K 的 6 成面积，热引擎约 50 秒）；要最实细节用 quality（2048²），要快用 draft（1056²）"
+  },
+  "quality": {
+    "template": "qwen_image_2_1_t2i",
+    "steps": 40,
+    "width": 2048,
+    "height": 2048,
+    "description": "成片：40 步 × 原生 2K（2048²，与官方示例一致）；12GB 显存约 170 秒，一次性任务建议配 unload_after"
+  }
+}

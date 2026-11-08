@@ -1,0 +1,5 @@
+# dsh-imagekit — 图像生成工坊
+# 一个插件包内聚：生成 / 像素处理 / 放大 / ComfyUI 引擎 / GPU 性能监测
+- insert:
+    - id: tool-image
+      name: 'dsh-imagekit'

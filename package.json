@@ -1,0 +1,111 @@
+{
+  "name": "dsh-imagekit",
+  "version": "0.0.2",
+  "description": "本地生图与放大：Qwen-Image 生成 / 改图、Vulkan 超分、像素处理，附 ComfyUI 引擎与显存监测（DeepSeek Harness 插件）",
+  "license": "MIT",
+  "author": "ikeyuchen (https://github.com/ikeyuchen)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ikeyuchen/dsh-imagekit.git"
+  },
+  "homepage": "https://github.com/ikeyuchen/dsh-imagekit#readme",
+  "bugs": {
+    "url": "https://github.com/ikeyuchen/dsh-imagekit/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "icon": "./icon.svg",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis",
+    "image-generation",
+    "image-editing",
+    "image-upscaling",
+    "image-processing",
+    "comfyui",
+    "qwen-image",
+    "realcugan",
+    "waifu2x",
+    "vulkan",
+    "local-ai",
+    "vram"
+  ],
+  "files": [
+    "lib/index.js",
+    "lib/client.js",
+    "lib/**/*.js",
+    "lib/**/*.mjs",
+    "scripts/pixels.py",
+    "tiers.json",
+    "models.manifest.json",
+    "cordis.patch.yml",
+    "icon.svg",
+    "locale/*.json",
+    "README.md",
+    "README.en.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "THIRD_PARTY.md",
+    "THIRD_PARTY_LICENSES/*.txt",
+    "docs/*.md",
+    "docs/*.png",
+    "docs/*.webp"
+  ],
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-plugin-manager",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-tool"
+      ]
+    }
+  },
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "test:download": "node scripts/test-download.mjs",
+    "test:backup": "node scripts/test-backup.mjs",
+    "test:setup": "node scripts/test-setup-tool.mjs",
+    "test:upscale": "node scripts/test-upscale-archive.mjs",
+    "test:output": "node scripts/test-output-dir.mjs",
+    "test": "npm run check && npm run test:download && npm run test:backup && npm run test:setup && npm run test:upscale && npm run test:output && npm run test:prompt && npm run test:route && npm run test:docs",
+    "prepublishOnly": "npm run check && npm run test:docs && node scripts/release.mjs --check",
+    "test:prompt": "node scripts/test-prompt-routing.mjs",
+    "tokens": "node scripts/token-report.mjs",
+    "test:docs": "node scripts/doc-drift.mjs",
+    "test:route": "node scripts/test-route.mjs",
+    "test:e2e": "node scripts/test-upgrade-real.mjs",
+    "release": "node scripts/release.mjs"
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.5",
+    "@deepseek-ai/schemastery": "3.18.5"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": ">=0.2.0-rc.2 <0.3.0",
+    "@deepseek-ai/schemastery": "~3.18.4"
+  },
+  "engines": {
+    "node": ">=22.19.0",
+    "dsh": ">=0.2.0-rc.2 <0.3.0"
+  }
+}

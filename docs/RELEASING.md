@@ -1,0 +1,61 @@
+# 发布流程
+
+## 版本策略
+
+- 当前版本：`0.0.2`
+- 版本号 `主.次.补丁`，本仓库管得宽松：补丁位就是「又一次发布」，不按十进制进位、没有上限，
+  修个 bug 也能发一个；次位只在想做大阶段划分时才动（规则原文见 `AGENTS.md`）。
+- 日常开发提交**不改** `version`；
+- 只有对外发布时才更新 `package.json` 与 `CHANGELOG.md`；日志怎么写（一条一行、固定分区）见 `AGENTS.md` 的「版本号与变更日志」；
+- npm 上每个版本不可覆盖：发布前必须确认 `npm pack --dry-run` 内容，发布后只能改内容发新版本。
+
+## 发布前检查
+
+```bash
+npm test
+npm pack --dry-run
+npm publish --dry-run --access public
+```
+
+确认包内不含：`data/`、`node_modules/`、模型权重、ComfyUI 引擎、Vulkan 引擎、本地 profile 配置与密钥。
+
+## 推送到 GitHub
+
+- **不自动推送**：用户说了才推；推送 = 发布，版本号与日志也在这一步确认。
+- **只推快照，不推本地历史**：GitHub 上始终只有一条无父的根提交，内容等于推送时的完整工作区；
+  本地高频提交只留在本机（同步过去就是污染数据）。
+- 攒一批再推；推送前跑 `npm test` 与 `npm run test:docs`（脚本会自动跑）。
+
+```bash
+npm run release            # 预演：显示标题改动与推送说明
+npm run release -- --push  # 去「未发布」→ 写日期 → npm test → 快照推送 → 核对 origin/main 只有 1 条
+```
+
+脚本做的就是下面的手动等价步骤（脚本不可用时再手搓）：
+
+```bash
+git add -A
+SNAP=$(git commit-tree "$(git write-tree)" -m "release: <版本与一句话说明>")
+git push -f origin "$SNAP:main"
+```
+
+推完核对 `git log --oneline origin/main` 只有 1 条。
+
+## 发布到 npm
+
+```bash
+npm login                     # 凭证过期时重新授权
+npm publish --access public   # prepublishOnly 会自动跑 npm run check
+npm view dsh-imagekit version # 核对已上架
+```
+
+- 开了 2FA 时加 `--otp=<6 位码>`。
+- 发布后如需修正，只能发下一个版本号。
+
+## 版本号变更（仅发布时）
+
+```bash
+npm version patch --no-git-tag-version   # 补丁位 +1，不封顶；要做大阶段划分再用 minor / major
+```
+
+然后更新 `CHANGELOG.md`，重跑检查并发布。
