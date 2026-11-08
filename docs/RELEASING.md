@@ -4,7 +4,7 @@
 
 - 当前版本：`0.0.2`
 - 日常开发提交**不改** `version`；
-- 只有对外发布时才更新 `package.json` 与 `CHANGELOG.md`；
+- 只有对外发布时才更新 `package.json` 与 `CHANGELOG.md`；日志怎么写（一条一行、固定分区）见 `AGENTS.md` 的「版本号与变更日志」；
 - npm 上每个版本不可覆盖：发布前必须确认 `npm pack --dry-run` 内容，发布后只能改内容发新版本。
 
 ## 发布前检查

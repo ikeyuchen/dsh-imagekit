@@ -31,13 +31,12 @@
 
 ### 修复
 
-- 只装 `core` 包时无法出图（模型探测把 turbo 模型当必需项）。
-- 参考图编辑不传 `tier` 报 `object is not extensible`（直接改宿主冻结的参数对象）。
-- `cfg` / `negative_prompt` / `resolution` / `unload_after` 未出现在参数表，模型无法传入。
+- 只装 `core` 包时无法出图，现已修复。
+- 参考图编辑不传 `tier` 时会直接报错，现已修复。
+- `cfg` / `negative_prompt` / `resolution` 现在可直接传（之前未声明，只能绕道 `image_generate_raw`）。
 - 解压只保留两条路：`.zip` 用 Node 内置解压，`.7z` 用插件自带的 `7zr`，用户不必装 7-Zip。
 - 「升级」与「修复」语义分开：版本不同才叫升级，只缺文件显示修复。
 - 多文件下载时进度条回退到 0；下载进行中仍显示升级按钮。
-- CI 从不安装依赖导致自测失败，现跑完整 `npm test`。
 - 非 Windows 平台改为明确报错，不再表现为「引擎起不来」。
 
 ### 文档
