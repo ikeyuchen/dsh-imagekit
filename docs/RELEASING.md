@@ -41,6 +41,17 @@ git push -f origin "$SNAP:main"
 
 推完核对 `git log --oneline origin/main` 只有 1 条。
 
+## 发行说明（GitHub Release）
+
+- 标题只用版本号：`vX.Y.Z`，不写副标题。
+- 正文直接复用 `CHANGELOG.md` 对应小节，末尾加一段安装命令。
+- 分区与写法跟 CHANGELOG 一致：`新增功能 / 体验优化 / 问题修复 / 其他变更`，每条一行。
+- 不逐条加粗、不用破折号、不写括号式补充说明；面向使用者写，不写实现细节。
+
+```bash
+gh release create v0.0.2 --target main --title v0.0.2 --notes-file <说明文件>
+```
+
 ## 发布到 npm
 
 ```bash
