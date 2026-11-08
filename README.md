@@ -77,12 +77,13 @@ Qwen-Image 2.1 **原生约 2K**（官方示例 `2048×2048`、40 步；官方比
 | `quality` | 2048² / 40 步 | 约 170 秒 | 成片、要最实细节 |
 | 自定义 | 官方比例 `2752×1536` 等 | 与 2048² 同档 | 横竖幅海报 |
 
-- **放大确实能加细节，二次元尤其明显**：插画/动漫的线稿与色块在 `cugan_pro`（models-pro）下提升非常直观（[对比图](docs/USAGE.md#放大确实能加细节二次元尤其明显)）；写实照片的毛发/材质也能更干净，但补不出模型没生成的写实细节。
+- **放大确实能加细节，二次元尤其明显**：插画/动漫的线稿与色块提升非常直观，`cugan_pro`（models-pro）最锐；写实照片的毛发/材质也能更干净，但补不出模型没生成的写实细节。
 - **省时间出 2K**：`draft` 1056² 出图 → `image_upscale` ×2，约 5 秒到 2112²，适合先看构图再定稿。
 - **超过原生不建议**：2560² 实测 226 秒（25 步）且容易重复结构——要更大就 2048² 生成后放大。
 - 8G 显存建议 ≤1536² 并选 `lowvram` 包；宽高需为 **32 的倍数**。
 
-## 模型
+![二次元 1024² 放大 ×2：传统插值 / cugan / cugan_pro，同一块 1:1 细节](docs/anime-upscale.webp)
+
 ## 模型
 
 | 包 | 步数 | 说明 |
@@ -97,13 +98,13 @@ Qwen-Image 2.1 **原生约 2K**（官方示例 `2048×2048`、40 步；官方比
 <p align="center">
   <img src="docs/demo-photo.webp" width="300" alt="写实：窗台上的橘白猫">
   &nbsp;&nbsp;
-  <img src="docs/demo-anime.webp" width="300" alt="二次元：樱花树下的狐耳少女">
+  <img src="docs/demo-anime.webp" width="300" alt="二次元：洋馆走廊里的猫娘女仆">
   <br>
-  <img src="docs/demo-text.webp" width="300" alt="文字：中文海报">
+  <img src="docs/demo-text.webp" width="300" alt="文字：中文新春海报">
   &nbsp;&nbsp;
   <img src="docs/demo-scene.webp" width="300" alt="场景：黄昏山谷湖泊">
 </p>
-<p align="center"><em>写实 · 二次元 · 文字 · 场景，均由本插件本地生成（示例图为早期 1056² 档生成；当前默认档已是 1536²，提示词见 <a href="docs/USAGE.md">用法</a>）</em></p>
+<p align="center"><em>写实 · 二次元 · 文字 · 场景，均由本插件本地生成（quality 档 2048² / 40 步直出，提示词见 <a href="docs/USAGE.md">用法</a>）</em></p>
 
 ## 要求
 

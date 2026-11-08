@@ -50,26 +50,37 @@ image_upscale(input_path="<上一步输出路径>", engine="cugan")
 2. **迭代用 `draft`**：官方 turbo 8 步实测画质接近 25 步（SSIM 0.93），时间约一半；
 3. **画幅用 `width`/`height`**（32 的倍数），不要写进提示词。
 
-### 示例提示词（README 三张配图）
+### 示例提示词（README 四张配图，均为 `quality` 档 2048² / 40 步）
+
+四条都按「主体 → 场景 → 风格 → 构图与光线」写：风格词只出现一次，光照单独一句，
+结尾一句收构图。
 
 ```text
-# 写实：1536² / 25 步（standard）
-一张写实摄影照片：一只橘白相间的短毛猫坐在浅色木质窗台上，午后阳光从左侧斜射进来，
-毛发边缘有轮廓光，背景是虚化的绿植，浅景深，50mm 定焦，柔和侧逆光，色彩自然。
+# 写实
+一只橘白相间的短毛猫坐在浅色木质窗台上，午后阳光从左上斜射进来，在毛发边缘勾出轮廓光，
+背景是虚化的绿植与模糊窗框，写实摄影，85mm 镜头，浅景深，暖色调，身体朝向左侧但头部转向镜头。
+The lighting is soft late-afternoon sunlight from the upper left.
+The overall composition is centered with generous negative space on the right.
 
-# 二次元：1536² / 25 步
-anime illustration of a silver-haired girl with fox ears standing under a cherry blossom tree,
-cel-shaded, clean line art, vibrant colors, detailed eyes, upper body, soft rim light,
-petals drifting in the air, shallow depth of field
+# 二次元（发色/瞳色/服装逐项写死，避免漂移）
+一名猫娘女仆站在洒满阳光的洋馆走廊里，银白色短发，头顶一对白色猫耳内耳粉色，琥珀色眼睛，
+黑色长裙女仆装配白色褶边围裙与深蓝色领结，双手在身前捧着银色托盘，身后是拱形窗与浅色石墙，
+赛璐璐上色，干净线稿，平涂，背景为平涂色块加平滑渐变，半身构图。
+The lighting is warm morning sunlight through the arched windows, with soft rim light on the hair.
+The overall composition places the character slightly left of center.
 
-# 场景：1536² / 25 步
-电影感风景照片：黄昏时分的山谷湖泊，湖面倒映着粉紫色晚霞与连绵远山，前景是长满野花的草坡，
-薄雾贴着水面，光线柔和通透，广角构图，色彩层次丰富，画面干净通透。
+# 文字（排版档：cfg 2 + 40 步 + 负向词）
+一张极简风格的中文海报，米色纸张质感背景，顶部两行深墨绿色粗体标题分别写着 “新春” 和 “如意”，
+中部是一枝横向伸展的红梅插画，左下角一行小字写着 “2027 新春特辑”，右下角一行小字写着 “限量发售”，大量留白。
+The lighting is soft even studio light.
+The overall composition is an asymmetric vertical poster with generous margins.
+文字不得多字、漏字、错字、乱码。
 
-# 文字：1024² / 40 步（含文字建议 40 步）
-一张方形极简科技海报：深藏青纯色背景，画面中央是发光的青蓝色渐变圆环与细网格线，
-柔和光晕向外扩散，顶部大号白色粗体标题写着「图像生成工坊」，标题下方一行浅灰细体小字
-「本地生图 · Vulkan 超分」，底部一行细体英文「dsh-imagekit」，居中构图，干净排版。
+# 场景
+黄昏时分的山谷湖泊，湖面平静，倒映着粉紫色晚霞与远处连绵雪山，湖岸是深绿色针叶林与散落的灰色巨石，
+前景有几丛被风吹动的金色芦苇，天空中有一弯细月与稀疏星点，写实风景摄影，广角。
+The lighting is the last warm light of sunset grazing the mountain peaks.
+The overall composition places the lake in the lower two thirds and the sky in the upper third.
 ```
 
 ## 1. 文生图（默认路径）
@@ -133,7 +144,9 @@ Qwen-Image 2.1 是**原生约 2K** 的模型：官方示例 `2048×2048`、40 �
 
 - **动漫 / 插画**：线稿、色块、发丝纹理提升非常直观，`cugan_pro`（models-pro）比 `cugan`（models-se）更锐：
 
-![二次元放大：传统插值 vs cugan vs cugan_pro](anime-upscale.webp)
+![二次元 1024² 放大 ×2：传统插值 vs cugan vs cugan_pro](anime-upscale.webp)
+
+  同一张 1024² 图、同一块 1:1 区域：传统插值只把软边抹大，`cugan` / `cugan_pro` 重建线稿与色块边界。放大 1056²→2112² 约 5 秒。
 
 - **写实照片**：毛发、材质边缘会更干净（`waifu2x_photo` / `photo_hq` / `realsr`），但补不出模型没有生成的写实纹理；要写实细节，`quality` 档原生 2048² 比放大更实。
 

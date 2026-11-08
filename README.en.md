@@ -82,9 +82,10 @@ The three tiers trade speed for quality — they are not model limits:
 - **Do not exceed the native range**: 2560² measured 226 s (25 steps) and tends to repeat structures — generate 2048² and upscale instead.
 - On 8 GB VRAM stay at or below 1536² with a `lowvram` pack; width/height must be multiples of 32.
 
-![1:1 detail: native 2048² vs 1056² upscaled ×2](docs/native-vs-upscale.webp)
+![Anime 1024² upscaled ×2: bicubic / cugan / cugan_pro — same 1:1 crop](docs/anime-upscale.webp)
 
-## Models
+![1:1 detail: native 2048² vs 1056² upscaled ×2 (the upscaler sharpens; native keeps the real detail)](docs/native-vs-upscale.webp)
+
 ## Models
 
 | Pack | Steps | Notes |
@@ -99,13 +100,13 @@ Both packs can be installed together and share the VAE and text encoder; pick `l
 <p align="center">
   <img src="docs/demo-photo.webp" width="300" alt="Photoreal: orange cat on a windowsill">
   &nbsp;&nbsp;
-  <img src="docs/demo-anime.webp" width="300" alt="Anime: fox-eared girl under cherry blossoms">
+  <img src="docs/demo-anime.webp" width="300" alt="Anime: catgirl maid in a sunlit hall">
   <br>
-  <img src="docs/demo-text.webp" width="300" alt="Text: Chinese poster">
+  <img src="docs/demo-text.webp" width="300" alt="Text: Chinese New Year poster">
   &nbsp;&nbsp;
   <img src="docs/demo-scene.webp" width="300" alt="Scene: mountain lake at dusk">
 </p>
-<p align="center"><em>Photoreal · anime · text · scene, all generated locally by this plugin (1056² / 1056² / 1024² / 1056²; prompts in <a href="docs/USAGE.md">usage</a>)</em></p>
+<p align="center"><em>Photoreal · anime · text · scene, all generated locally by this plugin at the quality tier (2048² / 40 steps; prompts in <a href="docs/USAGE.md">usage</a>)</em></p>
 
 ## Requirements
 

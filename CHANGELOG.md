@@ -41,6 +41,9 @@
 
 ### 文档
 
+- **示例图重做**：四张示例改为 `quality` 档 2048² / 40 步直出，二次元换成猫娘女仆（提示词按手册的「主体 → 场景 → 风格 → 构图与光线」重写）。
+- **新增二次元超分对比**：同一张 1024² 图放大 ×2，传统插值 / `cugan` / `cugan_pro` 三个 1:1 裁切并排。
+- 写实两张对比图（原生 2048² vs 1056² 放大、插值 vs `waifu2x_photo`）用新示例图重做。
 - 新增 `docs/ENGINE-VERSIONS.md`、`docs/PROMPTS-CORE.md`、`docs/ARCHITECTURE.md` 的能力矩阵。
 - `docs/MODEL.md` 补像素预算、放大与后处理路由、能力边界；`docs/PROMPTS.md` 补分类配方与探索方法。
 - README 补安装方式（DSH 添加插件 / `dsh plugin add` / 源码）与「装完还要下模型」的引导。
