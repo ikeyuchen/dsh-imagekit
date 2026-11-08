@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * release.mjs —— 发布一条快照：去掉「（未发布）」→ 改日期 → 验证 → 推 GitHub。
+ * release.mjs —— 发布：去掉「（未发布）」→ 改日期 → 验证 → 提交并推送 GitHub。
  *
  * 存在的理由：`（未发布）` 靠人记不住。凡是发布要做的事都放这里，一条命令做完，
  * 不允许漏步骤。默认只**预演**（不改文件、不推送），加 `--push` 才真的执行。
  *
  *   npm run release                      # 预演：显示会改什么、会推什么
- *   npm run release -- --push            # 真发布：改 CHANGELOG → npm test → 快照推送
+ *   npm run release -- --push            # 真发布：改 CHANGELOG → npm test → 提交并推送
  *   npm run release -- --push -m "一句话说明"
  *
  * 前置条件（不满足直接失败，不静默带过）：
