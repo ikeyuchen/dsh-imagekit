@@ -43,7 +43,7 @@ const WHITELIST = {
 		"esrgan_anime", "esrgan_hq", "photo_hq", "realsr", "realsr_jpeg",
 	],
 	// 宿主 / 其它插件提供的工具（不在本包）
-	hostTools: ["job_output", "job_kill", "job_list"],
+	hostTools: ["job_output", "job_kill", "job_list", "read_image"],
 	// 清单 / state 字段：校验 models.manifest.json 文件条目实际字段
 	manifestFields: [
 		"checkPath", "checkPaths", "extractGlobs", "extractMove", "extractRename", "extractTo",
@@ -187,9 +187,12 @@ for (const file of docs) {
 
 		// F 版本号（排除 IP 片段如 127.0.0 与已知上游版本）
 		const UPSTREAM = new Set(["0.39.0", "0.1.0", "1.5.0", "2.1"]);
-		for (const m of (isHistory ? [] : line.matchAll(/(?<![\d.])v?(\d+\.\d+\.\d+)(?![\d.])/g))) {
+		for (const m of (isHistory ? [] : line.matchAll(/(?<![\d.])v?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)(?![\d.])/g))) {
 			const v = m[1];
 			if (v === pkg.version || UPSTREAM.has(v)) continue;
+			// 发布文档里会写“下一个 beta”的示例版本；beta 示例不作为当前版本漂移
+			if (v.includes("-beta.") && !String(pkg.version).includes("-beta.")) continue;
+			if (v.includes("-beta.") && v !== pkg.version) continue;
 			add("F", file, n, `版本号 ${v} ≠ package.json ${pkg.version}`);
 		}
 	}
@@ -204,8 +207,8 @@ for (const file of docs) {
 		add("K", changelogFile, 0, "缺少 CHANGELOG.md");
 	} else {
 		const text = fs.readFileSync(changelogFile, "utf8");
-		const lineNo = text.split("\n").findIndex((line) => /^##\s+\d+\.\d+\.\d+/.test(line)) + 1;
-		const heading = /^##\s+(\d+\.\d+\.\d+)\s*(?:（([^）]*)）)?/m.exec(text);
+		const lineNo = text.split("\n").findIndex((line) => /^##\s+\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?/.test(line)) + 1;
+		const heading = /^##\s+(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)\s*(?:（([^）]*)）)?/m.exec(text);
 		if (heading === null) {
 			add("K", changelogFile, lineNo, "CHANGELOG 缺少 `## x.y.z` 版本小节");
 		} else {

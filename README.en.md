@@ -2,9 +2,9 @@
 
 <img src="docs/icon.png" width="88" height="88" alt="dsh-imagekit">
 
-**Local image generation and upscaling for DeepSeek Harness** — Qwen-Image text-to-image / reference edits, Vulkan super-resolution, plus pixel tools, ComfyUI engine and VRAM monitoring.
+Local image generation and upscaling for DeepSeek Harness. Includes Qwen-Image text-to-image and reference-image editing, Vulkan super-resolution, pixel tools, ComfyUI engine management and VRAM monitoring.
 
-[简体中文](README.md) · **English**
+[简体中文](README.md) · English
 
 [![npm](https://img.shields.io/npm/v/dsh-imagekit?color=4b6fff)](https://www.npmjs.com/package/dsh-imagekit)
 [![license](https://img.shields.io/badge/license-MIT-4b6fff)](LICENSE)
@@ -13,93 +13,104 @@
 
 ## Install
 
-**Option 1: install inside DSH (recommended)**
+### Option 1: install inside DSH (recommended)
 
-1. In DSH open **Plugins → Add plugin**
-2. Enter the package name `dsh-imagekit`, keep the source at **npm official registry**
-3. Click **Install**, then open the plugin from the plugin list
+1. Open DSH, go to Plugins, then Add plugin.
+2. Enter the package name `dsh-imagekit` and keep the source at the npm official registry.
+3. Click Install, then open the plugin from the plugin list.
 
-**Option 2: command line (also npm)**
+### Option 2: command line
 
 ```bash
 dsh plugin add dsh-imagekit
 ```
 
-> Mirrors such as npmmirror lag behind; check `npm ls dsh-imagekit` after installing. If it is older than this README,
-> run `npm i dsh-imagekit@latest --registry=https://registry.npmjs.org`.
+Mirrors such as npmmirror may lag behind. After installation, check the version with `npm ls dsh-imagekit`. If it is older than this document, run:
 
-**Option 3: from source** (development or unreleased builds)
+```bash
+npm i dsh-imagekit@latest --registry=https://registry.npmjs.org
+```
+
+Development builds use the `beta` tag and are installed separately from stable releases:
+
+```bash
+dsh plugin add dsh-imagekit@beta
+# or
+npm install dsh-imagekit@beta
+```
+
+### Option 3: from source
+
+For development or unreleased builds:
 
 ```bash
 git clone https://github.com/ikeyuchen/dsh-imagekit.git
 dsh plugin --profile web add ./dsh-imagekit
 ```
 
-## First run: models are not bundled
+## First run: download models
 
-The package ships **no** model weights, ComfyUI engine or upscale engines (too large). Download them from the settings page first, otherwise generation reports missing models:
+The package does not include model weights, the ComfyUI engine or upscale engines. Download them from the settings page before the first generation; otherwise generation reports missing models.
 
-1. DSH → **Plugins → Image Generation Studio → Configure**
-2. Confirm the install root under **Storage**
-3. Under **Components & manual download → image models**, pick one pack for your VRAM:
+1. Open DSH, go to Plugins → Image Generation Studio → Configure.
+2. Confirm the install root under Storage. The default is `%LOCALAPPDATA%\dsh-imagekit`; existing installations keep the previous directory. It can be changed to a larger disk.
+3. Under Components & manual download, select an image model pack:
 
    | VRAM | Pack | Notes |
    | --- | --- | --- |
-   | 12 GB | `core` or `fast` | `core` keeps the most detail; `fast` is ~3x faster |
-   | 8 GB | `lowvram` / `lowvram-fast` | w4a8 text encoder to fit |
-   | 32 GB | `full` | turbo + ControlNet + dual PE encoders |
+   | 12 GB | `core` or `fast` | `core` keeps the most detail; `fast` uses turbo and takes about one third of the time |
+   | 8 GB | `lowvram` / `lowvram-fast` | w4a8 text encoder to reduce VRAM use |
+   | 32 GB | `full` | turbo, ControlNet and dual PE encoders |
 
-4. Download the **ComfyUI engine** (~2 GB, required) and the **upscale engines** (~190 MB, optional) on the same page
-   An existing ComfyUI portable on this machine is detected and reused automatically, so this step shows ready and downloads nothing;
-   if it lives elsewhere, point `IMAGEKIT_ENGINE_DIR` at it
-5. Once every row shows *installed*, generate; see [usage](docs/USAGE.md)
+4. Download the ComfyUI engine (about 2 GB, required) and the upscale engines (about 190 MB, optional) on the same page.
+   An existing ComfyUI portable installation is detected and reused automatically. If it is in another location, set `IMAGEKIT_ENGINE_DIR`.
+5. Once every component shows installed, generation is ready. See [usage](docs/USAGE.md).
 
-> Downloaded the wrong pack? Use **Delete pack** on that row — only its exclusive files are removed.
+To remove a single model pack, use Delete pack on that row; only files exclusive to that pack are removed.
 
-## Features
+## Tools
 
-| Tool | What it does |
+| Tool | Description |
 | --- | --- |
-| `image_generate` / `image_generate_raw` | Text-to-image, reference-based edits, custom workflows; `draft` / `standard` / `quality` tiers |
-| `image_workflow_inspect` | Inspect the ComfyUI workflow a template submits |
-| `image_prompt_guide` | Built-in prompt handbook (tiers, recipes, on-image text, reference edits, upscale routing); returned on demand, handbook body is not idle context (tool declaration ~99 tokA) |
-| `image_upscale` | 10 Vulkan presets from official upstream builds (Real-CUGAN / Real-ESRGAN / waifu2x / RealSR; MIT + BSD-3) |
-| 5 pixel tools | Resize, region marking, alpha flatten, frame animation, pose check |
-| `comfy` / `image_service_status` | ComfyUI engine start/stop, self-healing, upgrade |
-| `image_setup` | Download, verify, back up, roll back and prune models and engines |
-| `perf` / `env_probe` / `preflight` | VRAM sampling, environment checks, pre-flight gates |
+| `image_generate` / `image_generate_raw` | Text-to-image, reference-image editing and custom workflows. Inline API graphs run on the direct backend; templates require the gateway. Provides `draft` / `standard` / `quality` tiers; omitting `tier` uses `standard` |
+| `image_workflow_inspect` | Inspect the resolved ComfyUI graph of a gateway template |
+| `image_prompt_guide` | Built-in prompt handbook covering tiers, recipes, on-image text, reference edits, upscale routing and capability limits. Returned on demand; the body is not idle context. Tool declaration is about 131 tokA |
+| `image_upscale` | 10 presets from official upstream builds: Real-CUGAN, Real-ESRGAN, waifu2x and RealSR (MIT / BSD-3), running on Vulkan |
+| 5 pixel tools | Resize, region marking, alpha flattening, frame animation and pose check |
+| `comfy` / `image_service_status` | ComfyUI engine start/stop, self-healing and upgrade |
+| `image_setup` | Download, verify, back up, roll back and clean models and engines |
+| `perf` / `env_probe` / `preflight` | VRAM sampling, environment checks and pre-flight checks for heavy tasks |
 
-Toolsets are registered by profile: `minimal` 6 / `standard` 14 / `all` 16 (default `standard`).
+Toolsets are registered by profile: `minimal` 6, `standard` 14, `all` 16. The default is `standard`.
 
 ## Size and upscaling
 
-Qwen-Image 2.1 is **native ~2K** (official examples use `2048×2048` at 40 steps; the official aspect table runs from `2048²` to `2752×1536`).
-The three tiers trade speed for quality — they are not model limits:
+Qwen-Image 2.1 has a native resolution of about 2K. Official examples use `2048×2048` at 40 steps, and the official aspect table covers `2048²` to `2752×1536`. The three tiers trade speed for quality; they are not model limits.
 
-| Tier | Size / steps | Measured on 12 GB VRAM | Good for |
-|---|---|---|---|
-| `draft` | 1056² / 8 steps (official turbo) | ~8–10 s | composition and prompt iteration |
-| `standard` (default) | **1536² / 25 steps** | **~50 s** | everyday output |
-| `quality` | 2048² / 40 steps | ~170 s | final images, maximum detail |
-| custom | official ratios, e.g. `2752×1536` | same class as 2048² | wide / tall posters |
+| Tier | Size / steps | Measured on 12 GB VRAM | Use case |
+| --- | --- | --- | --- |
+| `draft` | 1056² / 8 steps (official turbo) | about 8–10 s | Composition and prompt iteration |
+| `standard` (default) | 1536² / 25 steps | about 50 s | Everyday output |
+| `quality` | 2048² / 40 steps | about 170 s | Final images and extra detail |
+| custom | official ratios such as `2752×1536` | same class as 2048² | Landscape or portrait posters |
 
-- **Upscaling really does add detail — very visibly for anime/illustration**: line art and flat colour blocks improve a lot with `cugan_pro` (models-pro); photos get cleaner fur and material, but no detail the model never generated.
-- **Cheap 2K**: `draft` 1056² → `image_upscale` ×2 in ~5 s → 2112², handy before committing to a final render.
-- **Do not exceed the native range**: 2560² measured 226 s (25 steps) and tends to repeat structures — generate 2048² and upscale instead.
-- On 8 GB VRAM stay at or below 1536² with a `lowvram` pack; width/height must be multiples of 32.
+- Upscaling adds detail, most visibly for anime and illustration: line art and colour-block edges become clearer. `cugan_pro` (models-pro) is the sharpest option. Photos get cleaner fur and material, but detail the model never generated cannot be recovered.
+- For a quick 2K result, generate at `draft` 1056² and upscale ×2 with `image_upscale`; this takes about 5 seconds and produces 2112².
+- Do not exceed the native range. At 2560² and 25 steps the measured time is about 226 seconds and repeated structures become more likely. Generate at 2048² and upscale instead.
+- On 8 GB VRAM, stay at or below 1536² and use a `lowvram` pack. Width and height must be multiples of 32.
 
-![Anime 1024² upscaled ×2: bicubic / cugan / cugan_pro — same 1:1 crop](docs/anime-upscale.webp)
+![Anime 1024² upscaled ×2: bicubic / cugan / cugan_pro, same 1:1 crop](docs/anime-upscale.webp)
 
-![1:1 detail: native 2048² vs 1056² upscaled ×2 (the upscaler sharpens; native keeps the real detail)](docs/native-vs-upscale.webp)
+![1:1 detail: native 2048² vs 1056² upscaled ×2](docs/native-vs-upscale.webp)
 
-## Models
+## Model packs
 
 | Pack | Steps | Notes |
 | --- | --- | --- |
-| `core` (standard) | 25 | Best detail and Chinese text; ~30–60 s on a warm engine |
-| `fast` (turbo) | 6–8 | Turbo-distilled, about 1/3 the time, close to standard quality; good for drafts |
+| `core` (standard) | 25 | Best detail and Chinese text; about 30–60 s on a warm engine |
+| `fast` (turbo) | 6–8 | Turbo-distilled; about one third of the time, close to standard quality, suitable for drafts |
 
-Both packs can be installed together and share the VAE and text encoder; pick `lowvram` on 8 GB GPUs.
+Both packs can be installed together and share the VAE and text encoder. On 8 GB GPUs, use a `lowvram` pack.
 
 ## Samples
 
@@ -112,18 +123,15 @@ Both packs can be installed together and share the VAE and text encoder; pick `l
   &nbsp;&nbsp;
   <img src="docs/demo-scene.webp" width="300" alt="Scene: mountain lake at dusk">
 </p>
-<p align="center"><em>Photoreal · anime · text · scene, all generated locally by this plugin at the quality tier (2048² / 40 steps; prompts in <a href="docs/USAGE.md">usage</a>)</em></p>
+<p align="center"><em>Photoreal, anime, text and scene samples generated locally at the quality tier (2048² / 40 steps). Prompts are in <a href="docs/USAGE.md">usage</a>.</em></p>
 
 ## Requirements
 
-- Windows 10/11 x64 (engine and upscale binaries are Win64 only for now).
-- **No Python install needed**: the pixel tools use the Python runtime shipped with DSH (Pillow/numpy included); it falls back to
-  `python` then `py` on PATH, and the `pythonCommand` setting can point at any interpreter that has Pillow.
-- ComfyUI and Qwen-Image weights are not bundled; check what is missing with `image_setup(action="status")`.
-- **No 7-Zip install needed**: `.7z` engine packages are unpacked by the official 7-Zip standalone `7zr.exe`, downloaded automatically on first use
-  (600 KB, pinned sha256); `.zip` upscale packages are unpacked with Node's built-in zlib — both work out of the box
-  regardless of what archiver the system has.
-- **Generation works out of the box with no external service**: text-to-image and reference-image editing are submitted straight to the local ComfyUI engine (built-in direct backend — no gateway, no Python process, no window). Only legacy prompt-enhancer / ControlNet / VNCCS templates need an external compatible gateway.
+- Windows 10/11 x64. The engine and upscale binaries are currently Win64 only.
+- No separate Python installation is required. Pixel tools use the Python runtime shipped with DSH, which includes Pillow and numpy. If it is unavailable, `python` and `py` are tried in order; an interpreter with Pillow can be set via `pythonCommand`.
+- ComfyUI and Qwen-Image weights are not bundled. Use `image_setup(action="status")` to check missing components.
+- No 7-Zip installation is required. `.7z` engine packages are extracted with the official 7-Zip standalone `7zr.exe`, downloaded on first use (about 600 KB, pinned sha256). `.zip` upscale packages are extracted with Node's built-in zlib.
+- Generation does not require an external service by default. Text-to-image and reference-image editing are submitted directly to the local ComfyUI instance, without a gateway, Python process or window. Only legacy prompt-enhancer, ControlNet and VNCCS templates require an external compatible gateway.
 
 ## Docs
 
@@ -131,4 +139,6 @@ Both packs can be installed together and share the VAE and text encoder; pick `l
 
 ## License
 
-MIT. This is a third-party open-source plugin, not affiliated with, sponsored or endorsed by Alibaba / Qwen, the ComfyUI project, or DeepSeek. Product names are used only to describe compatibility.
+MIT. See [LICENSE](LICENSE). Third-party components and licenses are listed in [third-party notices](THIRD_PARTY.md).
+
+This is a third-party open-source plugin. It is not affiliated with, sponsored by or endorsed by Alibaba / Qwen, the ComfyUI project or DeepSeek. Product names are used only to describe compatibility.

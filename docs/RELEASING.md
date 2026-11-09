@@ -2,11 +2,11 @@
 
 ## 版本策略
 
-- 当前版本：`0.0.3`
-- 版本号 `主.次.补丁`，本仓库管得宽松：补丁位就是「又一次发布」，不按十进制进位、没有上限，
-  修个 bug 也能发一个；次位只在想做大阶段划分时才动（规则原文见 `AGENTS.md`）。
-- 日常开发提交**不改** `version`；
-- 准备发布时升版本，并在 `CHANGELOG.md` 顶部攒一个「（未发布）」小节；推送时由 `npm run release -- --push` 去标记、写日期；日志怎么写（一条一行、固定分区）见 `AGENTS.md` 的「版本号与变更日志」；
+- 当前版本：`0.0.4-beta.1`（开发版，npm dist-tag `beta`）
+- 版本号格式为 `主.次.补丁`。补丁位用于每次发布，不按十进制进位，无上限；次位仅用于阶段性版本（规则见 `AGENTS.md`）。
+- 开发版为 `x.y.z-beta.N`，仅发布到 npm 的 `beta` tag；稳定版为 `x.y.z`，仅发布到 `latest`。
+- 日常开发提交不修改 `version`。准备发布 beta 时，升到下一个 `x.y.z-beta.N`，并在 `CHANGELOG.md` 顶部写入同版本、带日期的小节（如 `## 0.0.4-beta.1（2026-11-09）`）。
+- 稳定版准备期间写 `## x.y.z（未发布）`，由 `npm run release -- --push` 去标记并写日期。
 - npm 上每个版本不可覆盖：发布前必须确认 `npm pack --dry-run` 内容，发布后只能改内容发新版本。
 
 ## 发布前检查
@@ -14,29 +14,51 @@
 ```bash
 npm test
 npm pack --dry-run
-npm publish --dry-run --access public
+npm publish --dry-run --tag beta --access public   # beta
+npm publish --dry-run --access public              # stable
 ```
 
 确认包内不含：`data/`、`node_modules/`、模型权重、ComfyUI 引擎、Vulkan 引擎、本地 profile 配置与密钥。
 
+## 开发版发布（beta）
+
+```bash
+npm run release:beta                 # 预演：检查版本/日志/测试计划
+npm run release:beta -- --publish    # 真发布：npm test → npm publish --tag beta
+```
+
+- 只更新 `beta` tag，不改 `latest`；
+- 用户安装开发版：`dsh plugin add dsh-imagekit@beta` 或 `npm install dsh-imagekit@beta`；
+- beta 小节直接写发布日期，不写「未发布」。
+
+## 稳定版发布（latest）
+
+```bash
+npm run release            # 预演：显示标题改动与推送说明
+npm run release -- --push  # 去「未发布」→ 写日期 → npm test → 合成一笔并推送
+npm publish --access public  # 发布 latest（prepublishOnly 会再验一次）
+```
+
+`release.mjs` 遇到版本号带 `-` 会拒绝走稳定流程；beta 只能用 `release:beta`。
+
 ## 推送到 GitHub
 
-- **不自动推送**：用户说了才推；推送 = 发布，版本号与日志也在这一步确认。
-- **攒一批再推**：一两处小改动不推，避免刷出一长串提交记录。
-- **每次推一条**：推送前把本地提交合并成一个（squash），远端只追加一条；正常快进，不用 `push -f`。
-- 推送前跑 `npm test` 与 `npm run test:docs`（脚本会自动跑）。
+- 不自动推送：仅在用户明确要求时推送。推送即发布，版本号与日志在这一步确认。
+- 集中推送：少量改动不单独推送，避免产生过多提交记录。
+- 每次推送一个提交：推送前将本地提交合并为一个（squash），远端只追加一条；正常快进，不使用 `push -f`。
+- 推送前执行 `npm test` 与 `npm run test:docs`（脚本会自动执行）。
 
 ```bash
 npm run release            # 预演：显示标题改动与推送说明
 npm run release -- --push  # 去「未发布」→ 写日期 → npm test → 合成一笔并推送
 ```
 
-脚本不可用时的等价手搓步骤：
+脚本不可用时的等价手动步骤：
 
 ```bash
 git add -A && git commit -m "<type>(<scope>): <subject>"
 git fetch origin && git rebase origin/main                                   # 远端有新提交时
-git reset --soft origin/main && git commit -m "release: x.y.z <一句话说明>"  # 合成一笔
+git reset --soft origin/main && git commit -m "release: x.y.z <说明>"  # 合并提交
 git push origin main
 ```
 
@@ -54,18 +76,22 @@ gh release create vX.Y.Z --target main --title vX.Y.Z --notes-file <说明文件
 ## 发布到 npm
 
 ```bash
-npm login                     # 凭证过期时重新授权
-npm publish --access public   # prepublishOnly 会自动跑 npm run check
-npm view dsh-imagekit version # 核对已上架
+npm login                                  # 凭证过期时重新授权
+npm run release:beta -- --publish          # beta：npm test + publish --tag beta
+npm view dsh-imagekit@beta version         # 核对 beta
+
+npm publish --access public                # stable：发布 latest
+npm view dsh-imagekit version              # 核对 latest
 ```
 
-- 开了 2FA 时加 `--otp=<6 位码>`。
-- 发布后如需修正，只能发下一个版本号。
+- 启用 2FA 时，beta 脚本会进入 npm 交互流程；也可手动执行 `npm publish --tag beta --otp=<6 位码>`。
+- 发布后如需修正，只能发下一个版本号；beta 修正发 `x.y.z-beta.N+1`，稳定版修正发下一个补丁。
 
 ## 版本号变更（仅发布时）
 
 ```bash
-npm version patch --no-git-tag-version   # 补丁位 +1，不封顶；要做大阶段划分再用 minor / major
+npm version 0.0.5-beta.1 --no-git-tag-version   # 下一个开发版
+npm version patch --no-git-tag-version          # 稳定版补丁位 +1
 ```
 
-然后更新 `CHANGELOG.md`，重跑检查并发布。
+然后更新 `CHANGELOG.md`，重新执行检查并发布。

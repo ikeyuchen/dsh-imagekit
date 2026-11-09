@@ -42,11 +42,14 @@ const must = (cmd, args, what) => {
 
 const pkg = JSON.parse(readFileSync(path.join(ROOT, "package.json"), "utf8"));
 const version = String(pkg.version ?? "");
+if (version.includes("-") && !doCheck) {
+	fail(`当前是开发版 ${version}：用 npm run release:beta 发布 beta，稳定版请先升到 x.y.z`);
+}
 const changelogPath = path.join(ROOT, "CHANGELOG.md");
 const changelog = readFileSync(changelogPath, "utf8");
 
 // 最新版本小节必须是第 2 行标题（第 1 个 `## `）。
-const heading = /^(##\s+(\d+\.\d+\.\d+)\s*(?:（([^）]*)）)?\s*)$/m.exec(changelog);
+const heading = /^(##\s+(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)\s*(?:（([^）]*)）)?\s*)$/m.exec(changelog);
 if (heading === null) fail("CHANGELOG.md 找不到 `## x.y.z` 版本小节");
 const [, oldHeading, headingVersion, headingTag] = heading;
 if (headingVersion !== version) {

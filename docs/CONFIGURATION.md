@@ -7,7 +7,7 @@
 
 | 分组 | 字段 | 默认 | 说明 |
 |---|---|---|---|
-| 存储位置 | `installRoot` | `%LOCALAPPDATA%\dsh-imagekit`（非 Windows 用 `~/.local/share/dsh-imagekit`） | 工具分类根目录，打开设置页或跑 `status` 时**自动创建**；旧版默认目录存在时直接沿用；可改成任意目录，`IMAGEKIT_INSTALL_ROOT` 可整体覆盖 |
+| 存储位置 | `installRoot` | `%LOCALAPPDATA%\dsh-imagekit` | 工具分类根目录。打开设置页或执行 `status` 时自动创建；旧版默认目录存在时沿用；可改为任意目录，`IMAGEKIT_INSTALL_ROOT` 可整体覆盖。其他平台按 XDG 数据目录解析，但引擎与超分仍仅支持 Windows x64 |
 | | `modelsRoot` | `<installRoot>\models` | 生图模型 |
 | | `engineRoot` | `<installRoot>\engine\ComfyUI_windows_portable` | ComfyUI 便携版。默认位置没引擎时自动探测本机已有的 ComfyUI 便携版并直接复用（不下载）；复用状态下 `image_setup` 拒绝往那个目录安装/升级。`IMAGEKIT_ENGINE_DIR` 可指定其他位置 |
 | | `upscaleEnginesRoot` | `<installRoot>\upscale-engines\engines` | 放大引擎 |
@@ -15,9 +15,9 @@
 | 下载源 | `modelSource` | `huggingface` | `huggingface` / `hf-mirror`（第三方镜像）/ `modelscope`（第三方镜像）/ `custom` |
 | | `modelPackBaseUrl` | 空 | `custom` 时的镜像根 |
 | | `downloadConnections` | `4` | 大文件下载的分片连接数（`1`/`2`/`4`/`8`）；服务端不支持 Range 会自动回退单流 |
-| | `githubProxy` | 空 | GitHub 下载代理（如 `https://ghfast.top/`）。**只在官方路径都不通时兜底**，只代理 `github.com` 链接，仍按清单 sha256 校验；实测不加速、只提升可达性 |
-| | `upscaleSource` | `official` | `official` / `sourceforge`（预留，当前清单未登记地址，会回落 official）/ `custom` |
-| 性能与显存 | —— | 实时读 | 只读面板；**依赖 `perf` 工具，`minimal` 档不注册 → 面板不可用** |
+| | `githubProxy` | 空 | GitHub 下载代理（如 `https://ghfast.top/`）。仅在官方路径不可用时兜底，只代理 `github.com` 链接，仍按清单 sha256 校验；实测不提升速度，只提升可达性 |
+| | `upscaleSource` | `official` | `official` / `sourceforge`（预留，当前清单未登记地址，会回落 `official`）/ `custom` |
+| 性能与显存 | 只读 | 实时读取 | 只读面板，依赖 `perf` 工具；`minimal` 档不注册该工具，面板不可用 |
 | 自动行为 | `toolsetProfile` | `standard` | `minimal` 6 件 / `standard` 14 件 / `all` 16 件 |
 | | `autoDownload` | `off` | 保留字段，当前代码不会自动下载 |
 | | `autoCheckUpdates` | `on` | `off` 时组件行不再显示「可升级/修复」提示（版本比对仍会做，只是不提示） |
@@ -48,22 +48,22 @@
 
 ## 本机私有配置（不进版本库）
 
-网关是独立服务，位置因人而异。按以下顺序解析（代码里不含任何具体路径）：
+网关为独立服务，位置因环境而异。按以下顺序解析（代码中不包含具体路径）：
 
-1. 环境变量 `IMAGEKIT_GATEWAY_DIR`（日志目录可另设 `IMAGEKIT_GATEWAY_LOG_DIR`）
+1. 环境变量 `IMAGEKIT_GATEWAY_DIR`（日志目录可另行设置 `IMAGEKIT_GATEWAY_LOG_DIR`）
 2. `$DSH_HOME/imagekit/local.json` 的 `gatewayDir` 字段
 3. `<installRoot>/gateway`
 
 ```json
 // $DSH_HOME/imagekit/local.json
-{ "gatewayDir": "<你的网关目录>" }
+{ "gatewayDir": "<网关目录>" }
 ```
 
 同类可覆盖项：`IMAGEKIT_INSTALL_ROOT`（整体换安装根）、`IMAGEKIT_ENGINE_DIR`（指定已有 ComfyUI，免再次下载引擎）。
 
 解压相关的环境变量（排障用）：`IMAGEKIT_EXTRACTOR=zip` 强制 Node 内置解压；`.7z` 固定走 7zr（`IMAGEKIT_EXTRACTOR=7zr` 对 `.zip` 不生效）；`SEVEN_ZIP` 可指定本机 7z 可执行文件替代 7zr（仅特殊环境需要）。默认：`.zip` → Node 内置解压，`.7z` → `<installRoot>/tools/7zr.exe`（缺失时按需下载并校验 sha256，600 KB）。
 
-不再探测本机 7-Zip 或系统 tar；两条路径之外没有兜底链。
+不再探测本机 7-Zip 或系统 tar；上述两条路径之外不提供其他回退方式。
 
 ## 目录布局
 
@@ -83,15 +83,15 @@
 
 `models.manifest.json` 结构：`components.{engine|models|upscale}.packs.<name>.files[]`。
 
-模型包（`models.packs`，**叠加安装**，可同时存在；权重合计单位 GiB）：
+模型包（`models.packs`，支持叠加安装，可同时存在；权重合计单位为 GiB）：
 
 | pack | 组成 | 合计 | 建议显存 |
 |---|---|---|---|
-| `core`（推荐） | 标准 int8 扩散 + qwen3vl int8 编码器 + VAE | 16.1 | 12G+ |
-| `fast` | turbo int8 扩散 + 同上 | 16.1 | 12G+，步数少 |
-| `lowvram` | 标准 int8 + **w4a8 编码器** + VAE | 13.3 | 8G |
-| `lowvram-fast` | turbo int8 + **w4a8 编码器** + VAE | 13.3 | 8G |
-| `full` | turbo + VAE + ControlNet + PE | 28.5 | 32G+ |
+| `core`（推荐） | 标准 int8 扩散 + qwen3vl int8 编码器 + VAE | 16.1 | 12 GB+ |
+| `fast` | turbo int8 扩散 + 同上 | 16.1 | 12 GB+，步数少 |
+| `lowvram` | 标准 int8 + w4a8 编码器 + VAE | 13.3 | 8 GB |
+| `lowvram-fast` | turbo int8 + w4a8 编码器 + VAE | 13.3 | 8 GB |
+| `full` | turbo + VAE + ControlNet + PE | 28.5 | 32 GB+ |
 
 文件条目字段：`path`/`checkPath`/`checkPaths`、`sources`、`sizeBytes`、`sha256`、`optional`、
 `extractTo`/`extractRename`/`extractGlobs`/`extractMove`；pack 级 `version` 用于升级判断。

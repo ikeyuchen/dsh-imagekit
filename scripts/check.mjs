@@ -19,8 +19,8 @@ const exists = (rel) => existsSync(path.join(ROOT, rel));
 const pkg = JSON.parse(read("package.json"));
 if (pkg.name !== "dsh-imagekit") fail(`package name 应为 dsh-imagekit，实际 ${pkg.name}`);
 else ok("package name = dsh-imagekit");
-// 版本号随发布递增，这里只校验形状（x.y.z），不写死具体值
-if (!/^\d+\.\d+\.\d+$/.test(String(pkg.version ?? ""))) fail(`版本号应为 x.y.z（当前 ${pkg.version}）`);
+// 版本号随发布递增，这里只校验形状（x.y.z 或 x.y.z-beta.N），不写死具体值
+if (!/^\d+\.\d+\.\d+(?:-beta\.\d+)?$/.test(String(pkg.version ?? ""))) fail(`版本号应为 x.y.z 或 x.y.z-beta.N（当前 ${pkg.version}）`);
 else ok(`version = ${pkg.version}`);
 if (pkg.private === true) fail("发布包不应 private:true");
 else ok("private 未启用");

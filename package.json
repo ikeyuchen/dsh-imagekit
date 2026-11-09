@@ -1,6 +1,6 @@
 {
   "name": "dsh-imagekit",
-  "version": "0.0.3",
+  "version": "0.0.4-beta.1",
   "description": "本地生图与放大：Qwen-Image 生成 / 改图、Vulkan 超分、像素处理，附 ComfyUI 引擎与显存监测（DeepSeek Harness 插件）",
   "license": "MIT",
   "author": "ikeyuchen (https://github.com/ikeyuchen)",
@@ -91,11 +91,13 @@
     "test": "npm run check && npm run test:download && npm run test:backup && npm run test:setup && npm run test:upscale && npm run test:output && npm run test:paths && npm run test:prompt && npm run test:route && npm run test:docs",
     "prepublishOnly": "npm run check && npm run test:docs && node scripts/release.mjs --check",
     "test:prompt": "node scripts/test-prompt-routing.mjs",
+    "test:gateway": "node scripts/test-gateway.mjs",
     "tokens": "node scripts/token-report.mjs",
     "test:docs": "node scripts/doc-drift.mjs",
     "test:route": "node scripts/test-route.mjs",
     "test:e2e": "node scripts/test-upgrade-real.mjs",
-    "release": "node scripts/release.mjs"
+    "release": "node scripts/release.mjs",
+    "release:beta": "node scripts/release-beta.mjs"
   },
   "devDependencies": {
     "@deepseek-ai/dsh-tools": "0.2.1-rc.5",

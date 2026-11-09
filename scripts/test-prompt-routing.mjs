@@ -11,7 +11,7 @@
  */
 import assert from "node:assert/strict";
 
-const { resolveTemplateForRefs, readPromptGuide, promptGuideTopics, slicePromptGuide } = await import("../lib/generate/tools.js");
+const { resolveTemplateForRefs, applyDefaultTier, resolveSeed, assertImageSize, formatMetaLine, readPromptGuide, promptGuideTopics, slicePromptGuide } = await import("../lib/generate/tools.js");
 
 let passed = 0;
 const check = (label, fn) => {
@@ -28,9 +28,20 @@ check("无参考图：模板保持不变", () => {
 	assert.equal(out.switched, false);
 });
 
-check("有参考图 + 未指定模板：自动切到编辑模板", () => {
-	const out = resolveTemplateForRefs({ effectiveTemplate: undefined, explicitTemplate: undefined, refCount: 2 });
+check("有参考图 + 未指定模板：自动切到编辑模板（单图）", () => {
+	const out = resolveTemplateForRefs({ effectiveTemplate: undefined, explicitTemplate: undefined, refCount: 1 });
 	assert.equal(out.template, "qwen_image_2_1_edit");
+	assert.equal(out.switched, true);
+});
+
+check("3 张参考图 → edit3，4 张以上 → edit6", () => {
+	assert.equal(resolveTemplateForRefs({ effectiveTemplate: "qwen_image_2_1_t2i", explicitTemplate: undefined, refCount: 3 }).template, "qwen_image_2_1_edit3");
+	assert.equal(resolveTemplateForRefs({ effectiveTemplate: "qwen_image_2_1_t2i", explicitTemplate: undefined, refCount: 4 }).template, "qwen_image_2_1_edit6");
+});
+
+check("denoise < 1 + 单图 → i2i（只有 i2i 模板吃 denoise）", () => {
+	const out = resolveTemplateForRefs({ effectiveTemplate: "qwen_image_2_1_t2i", explicitTemplate: undefined, refCount: 1, denoise: 0.8 });
+	assert.equal(out.template, "qwen_image_2_1_i2i");
 	assert.equal(out.switched, true);
 });
 
@@ -84,10 +95,60 @@ check("按关键字只返回命中小节", () => {
 	assert.ok(!content.includes("## 7."));
 });
 
-check("未命中关键字回退全文（不报错也不空返回）", () => {
+check("未命中关键字不再回退全文（避免 14 倍上下文）", () => {
 	const { content, matched } = slicePromptGuide(guide, "不存在的主题");
 	assert.equal(matched, false);
+	assert.equal(content, "");
+});
+
+check("英文/近义 section 关键字能命中中文小节", () => {
+	for (const [key, expected] of [
+		["text", "## 3."],
+		["edit", "## 4."],
+		["upscale", "## 5."],
+		["limits", "## 7."],
+		["troubleshoot", "## 8."],
+		["tier", "## 0."],
+		["写实", "## 2."],
+		["poster", "## 2."]
+	]) {
+		const { content, matched } = slicePromptGuide(guide, key);
+		assert.equal(matched, true, `section ${key} should match`);
+		assert.ok(content.startsWith(expected), `section ${key} should start with ${expected}, got ${content.split("\n")[0]}`);
+	}
+});
+
+check("省略 section 仍返回全文（显式全量路径保留）", () => {
+	const { content, matched } = slicePromptGuide(guide, "");
+	assert.equal(matched, false);
 	assert.equal(content, guide);
+});
+
+check("默认档位：省略 tier → standard；显式档位不被改写", () => {
+	assert.equal(applyDefaultTier({ prompt: "x" }).tier, "standard");
+	assert.equal(applyDefaultTier({ prompt: "x", tier: "draft" }).tier, "draft");
+	assert.equal(applyDefaultTier({ prompt: "x", tier: null }).tier, "standard");
+});
+
+check("seed：-1/缺失转成确定值，显式值保留", () => {
+	assert.ok(Number.isInteger(resolveSeed(-1)) && resolveSeed(-1) >= 0);
+	assert.ok(Number.isInteger(resolveSeed(undefined)) && resolveSeed(undefined) >= 0);
+	assert.equal(resolveSeed(42), 42);
+});
+
+check("尺寸闸门：32 倍数放行，1080 与 0 报错", () => {
+	assert.doesNotThrow(() => assertImageSize(1536, "width"));
+	assert.doesNotThrow(() => assertImageSize(undefined, "width"));
+	assert.throws(() => assertImageSize(1080, "height"), /multiple of 32/);
+	assert.throws(() => assertImageSize(0, "width"), /positive integer/);
+});
+
+check("模型可见 render 的 meta 行包含 seed/尺寸/步数/模板", () => {
+	const line = formatMetaLine({ seed: 1165651769, width: 1536, height: 1536, steps: 25, cfg: 1, template: "qwen_image_2_1_t2i", backend: "direct" });
+	for (const part of ["seed=1165651769", "size=1536x1536", "steps=25", "cfg=1", "template=qwen_image_2_1_t2i", "backend=direct"]) {
+		assert.ok(line.includes(part), `missing ${part} in ${line}`);
+	}
+	assert.ok(formatMetaLine({ seed: 1, resolution: 1056, steps: 8, cfg: 1, template: "qwen_image_2_1_i2i" }).includes("resolution=1056"));
 });
 
 check("手册自包含：不引用 DSH 技能", () => {
