@@ -10,12 +10,15 @@
 ## 命令
 
 ```bash
-npm run check      # 包结构 / 语法 / 发布边界
+npm run check      # 包结构 / 语法（lib 与 scripts）/ 发布边界
 npm run test:docs  # 文档漂移（链接、路径、工具名、配置键、数量）
-npm test           # 全套离线自测（check + 7 套 + 路由 + 文档漂移），修改后必须执行
+npm test           # 全套离线自测（check + 10 套用例 + 文档漂移，含网关与工具校验），修改后必须执行
 npm run test:e2e   # 真实大文件回归（默认跳过；IMAGEKIT_E2E=1 时运行，约 190 MB）
-npm run release    # 发布预演（只显示会改什么，不动文件、不推送）
+npm run release    # 发布预演（只显示会改什么，不动文件、不推送、不打 tag）
 ```
+
+CI 在 `windows-latest` 上跑 Node 22 与 24（本插件不支持 Linux，不要用 ubuntu runner）。
+CI 不是强制门禁（私有仓库免费版没有分支保护），真正的门禁是 `prepublishOnly` 里的 `npm test`。
 
 ## 硬约束
 
@@ -41,15 +44,16 @@ npm run release    # 发布预演（只显示会改什么，不动文件、不�
 - 推送前将本地提交合并为一个提交，GitHub 每次推送只新增一条记录。
 - 只追加、不改写：`git push origin main` 正常快进，不使用 `push -f`；远端有新提交时先执行
   `git fetch origin && git rebase origin/main`，再合并提交。唯一分支为 `main`。
+- 推 `v<version>` tag 就是发布：会触发 `release.yml` 发布到 npm。除发布外不要推 tag。
 
 ### 版本号与变更日志（发布时）
 
 日常提交不修改 `version`，不写变更日志。开发版发布到 npm 的 `beta`，稳定版发布到 `latest`。
 
 - 版本号格式为 `x.y.z`；开发版为 `x.y.z-beta.N`。补丁位用于每次发布，不按十进制进位。
-- 仅开发版使用 `npm run release:beta -- --publish`；稳定版使用 `npm run release -- --push`，随后执行 `npm publish --access public`。稳定版发布前应完成 beta 验证。
+- 仅开发版使用 `npm run release:beta -- --publish`；稳定版使用 `npm run release -- --push`——脚本会合并提交、推送 main、打 `v<version>` tag，由 `release.yml` 发布，不要再手工执行 `npm publish`。稳定版发布前应完成 beta 验证。
 - `CHANGELOG.md` 最新小节必须与 `package.json` 版本一致。开发版写发布日期；稳定版发布前写「未发布」，由脚本更新。
 - 分区固定为 `新增功能 / 体验优化 / 问题修复 / 其他变更`。首句总结，每条一行，只写用户可见变化，不写根因、类名、测试数字或实测耗时。
-- 发布由脚本执行。`npm test`、`doc-drift` 的 K 规则与 `prepublishOnly` 自动校验；`release.mjs` 拒绝 prerelease 走稳定流程。
+- 发布由脚本执行。`prepublishOnly` 在 `npm publish` 前跑完整 `npm test`（含 `doc-drift` 的 K 规则），本地手动发布也绕不过；`release.mjs` 拒绝 prerelease 走稳定流程。
 
 完整流程与命令参数见 `docs/RELEASING.md`。

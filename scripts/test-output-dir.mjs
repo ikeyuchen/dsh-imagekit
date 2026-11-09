@@ -15,13 +15,12 @@ import path from 'node:path'
 
 const mod = await import(new URL('../lib/generate/tools.js', import.meta.url).href)
 
-// saveImages 不导出；用注册工具的表驱动不了网络，这里直接测等价行为的公开面：
-// 通过 registerImageGenTools 拿不到 execute（要网关），因此改测导出的辅助行为——
-// 若未导出，则跳过并提示。
+// saveImages 由 lib/generate/tools.js 导出；这里直接断言它还在。
+// 以前写成「未导出就跳过」：一次重命名会让整套用例变成空跑，CI 却仍然全绿。静默跳过不再允许。
 const saveImages = mod.saveImages
 if (typeof saveImages !== 'function') {
-  console.log('skip: saveImages is not exported (internal helper)')
-  process.exit(0)
+  console.error('✗ lib/generate/tools.js 未导出 saveImages：本套用例无法验证落盘行为')
+  process.exit(1)
 }
 
 const root = mkdtempSync(path.join(tmpdir(), 'imagekit-out-'))

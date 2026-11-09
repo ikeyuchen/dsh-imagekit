@@ -4,24 +4,37 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 要发布的 tag（形如 v0.0.5），必须与 package.json 的 version 一致
+        required: true
+
+# 发布只需要读仓库 + npm token；不使用 OIDC provenance（该功能要求公开仓库，本仓库为私有）
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
+    # npm test 里有 Windows 专有断言，发布前的自测必须在 Windows 上跑
+    runs-on: windows-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
-      # prepublishOnly 会跑 check + test:docs + release --check，后者要 import lib/*.js，
+          cache: npm
+      # prepublishOnly 会先跑 npm test（含 check 与文档漂移），而 npm test 要 import lib/*.js，
       # 缺宿主侧 peer 包会 ERR_MODULE_NOT_FOUND，所以必须先装依赖（与 ci.yml 同因）。
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Require NPM_TOKEN
+        shell: bash
         run: |
           if [ -z "${NODE_AUTH_TOKEN}" ]; then
             echo "::error::缺少仓库 secret NPM_TOKEN（Settings → Secrets and variables → Actions）。"
@@ -30,9 +43,30 @@ jobs:
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Check
-        run: npm run check
+      # tag 与版本必须一致，否则会出现「打了 v0.0.5 的 tag，发出去的是 0.0.4」这类不可撤销的错账。
+      # 版本号含 - 一律走 beta dist-tag：npm 默认 latest，把预发布版本发到 latest 无法撤回。
+      - name: Verify tag and pick dist-tag
+        shell: bash
+        env:
+          REQUESTED_TAG: ${{ inputs.tag }}
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${REQUESTED_TAG}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          if [ "${TAG}" != "v${VERSION}" ]; then
+            echo "::error::tag ${TAG} 与 package.json 版本 v${VERSION} 不一致"
+            exit 1
+          fi
+          case "${VERSION}" in
+            *-*) echo "DIST_TAG=beta" >> "$GITHUB_ENV" ;;
+            *)   echo "DIST_TAG=latest" >> "$GITHUB_ENV" ;;
+          esac
+          echo "将发布 ${VERSION} 到 dist-tag ${DIST_TAG}"
       - name: Publish
-        run: npm publish --access public
+        shell: bash
+        run: npm publish --access public --tag "${DIST_TAG}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

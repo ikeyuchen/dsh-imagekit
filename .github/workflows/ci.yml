@@ -4,28 +4,48 @@ on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
   workflow_dispatch:
+
+# CI 只读仓库，不需要写权限
+permissions:
+  contents: read
+
+# 连续推送时取消上一次未完成的运行，避免排队
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    # 本插件只支持 Windows x64（Vulkan 引擎与 ComfyUI 便携版都是 .exe），
+    # 测试里有 process.platform === "win32" 分支与盘符路径断言，跑 Ubuntu 会跳过或误判。
+    runs-on: windows-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    name: check (node ${{ matrix.node }})
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node }}
+          cache: npm
       # devDependencies 里钉了宿主侧 peer 包（@deepseek-ai/dsh-tools、schemastery）：
       # doc-drift / image_setup 自测要 import lib/index.js 与 lib/setup.js，缺了它们会直接 ERR_MODULE_NOT_FOUND
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
-      # 放大引擎自测需要用 7z 现造归档；缺 7z 时该用例会自行 skip
-      - name: Install 7-Zip
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq p7zip-full
-      - name: Static package check
-        run: npm run check
+        run: npm ci --no-audit --no-fund
+      # 放大引擎自测需要 7-Zip；缺了会静默 skip，等于白跑。先在 runner 上确认它存在。
+      - name: Verify 7-Zip
+        shell: pwsh
+        run: |
+          $exe = "C:\Program Files\7-Zip\7z.exe"
+          if (-not (Test-Path $exe)) { throw "7-Zip not found at $exe：upscale 归档用例会静默跳过" }
+      # 全套离线自测：check、10 套用例、文档漂移都在 npm test 里，不重复单列。
+      # 放大引擎自测需要 7-Zip：windows-latest 镜像自带 C:\Program Files\7-Zip\7z.exe，无需安装。
       - name: Offline test suite
         run: npm test
-      - name: Docs drift check
-        run: npm run test:docs
       - name: npm pack dry-run
         run: npm pack --dry-run

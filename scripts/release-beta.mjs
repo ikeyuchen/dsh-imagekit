@@ -3,7 +3,7 @@
  * release-beta.mjs —— 发布开发版到 npm 的 beta dist-tag。
  *
  *   npm run release:beta                 # 预演：检查版本/日志/测试计划，不发布
- *   npm run release:beta -- --publish    # 真发布：npm test + npm publish --tag beta
+ *   npm run release:beta -- --publish    # 真发布：npm publish --tag beta（npm 的 prepublishOnly 先跑 npm test）
  *   npm run release:beta -- --dry-run    # 只跑 npm publish --dry-run，不真正发布
  *
  * 规范（见 AGENTS.md / docs/RELEASING.md）：
@@ -58,19 +58,18 @@ console.log(`日志      ## ${version}（${date}）`);
 console.log(`dist-tag  beta（不改 latest）`);
 
 if (!doPublish && !dryRun) {
-	console.log("\n预演模式：未跑测试、未发布。确认后加 --publish 真正发布。");
+	console.log("\n预演模式：未发布。确认后加 --publish 真正发布。");
 	process.exit(0);
 }
 
-console.log("\n跑 npm test…");
-const test = run(process.platform === "win32" ? "npm.cmd" : "npm", ["test"], { capture: false });
-if (test.code !== 0) fail("npm test 未通过，已停止发布");
-
+// npm test 不在这里跑：package.json 的 prepublishOnly 已经包含它，
+// 放在 npm publish 里跑可以覆盖所有发布入口（本脚本、本地手动 publish、CI 的 tag 发布），
+// 脚本再跑一遍只会白白多花一整套自测的时间。
 const publishArgs = ["publish", "--tag", "beta", "--access", "public"];
 if (dryRun) publishArgs.push("--dry-run");
-console.log(`\nnpm ${publishArgs.join(" ")}…`);
+console.log(`\nnpm ${publishArgs.join(" ")}（prepublishOnly 会先跑 npm test）…`);
 const publish = run(process.platform === "win32" ? "npm.cmd" : "npm", publishArgs, { capture: false });
-if (publish.code !== 0) fail("npm publish 失败");
+if (publish.code !== 0) fail("npm publish 失败（若刚打印的是自测失败，先修测试再发）");
 
 if (!dryRun) {
 	// npm publish 返回成功不代表 registry 立刻可查：dist-tag 传播常有几秒到几分钟延迟。

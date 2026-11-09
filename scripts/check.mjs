@@ -79,6 +79,8 @@ const walk = (dir) => {
   }
 };
 walk(path.join(ROOT, "lib"));
+// scripts/ 里的自测与发布脚本同样是发布物的一部分（prepublishOnly 会跑它们），语法错误不该等到运行时才发现
+walk(path.join(ROOT, "scripts"));
 for (const file of jsFiles) {
   const res = spawnSync(process.execPath, ["--check", file], { encoding: "utf8" });
   if (res.status !== 0) fail(`语法检查失败 ${path.relative(ROOT, file)}: ${res.stderr.trim().split("\n")[0]}`);

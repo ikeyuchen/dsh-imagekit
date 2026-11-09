@@ -12,19 +12,21 @@
 ## 发布前检查
 
 ```bash
-npm test
+npm test            # check、10 套用例（含网关与工具校验）、文档漂移
 npm pack --dry-run
-npm publish --dry-run --tag beta --access public   # beta
-npm publish --dry-run --access public              # stable
 ```
+
+`npm publish` 会自动先跑 `npm test`（`package.json` 的 `prepublishOnly`），所以任何发布入口都绕不过自测。
+CI（`.github/workflows/ci.yml`）在 `windows-latest` 上跑 Node 22 与 24，作为参考；私有仓库免费版没有分支保护，
+CI 不能强制拦截，真正的门禁是 `prepublishOnly`。
 
 确认包内不含：`data/`、`node_modules/`、模型权重、ComfyUI 引擎、Vulkan 引擎、本地 profile 配置与密钥。
 
 ## 开发版发布（beta）
 
 ```bash
-npm run release:beta                 # 预演：检查版本/日志/测试计划
-npm run release:beta -- --publish    # 真发布：npm test → npm publish --tag beta
+npm run release:beta                 # 预演：检查版本/日志
+npm run release:beta -- --publish    # 真发布：npm publish --tag beta（prepublishOnly 先跑 npm test）
 ```
 
 - 只更新 `beta` tag，不改 `latest`；
@@ -35,9 +37,14 @@ npm run release:beta -- --publish    # 真发布：npm test → npm publish --ta
 
 ```bash
 npm run release            # 预演：显示标题改动与推送说明
-npm run release -- --push  # 去「未发布」→ 写日期 → npm test → 合成一笔并推送
-npm publish --access public  # 发布 latest（prepublishOnly 会再验一次）
+npm run release -- --push  # 去「未发布」→ 写日期 → npm test → 合并提交 → 推送 main → 推 v<version> tag
 ```
+
+推送 tag 后由 `.github/workflows/release.yml` 发布：先核对 tag 与 `package.json` 版本一致，再跑
+`npm test`（`prepublishOnly`），最后按版本号选 dist-tag 发布。本地不要再执行 `npm publish`，
+否则同一版本会被发布两次。
+
+workflow 不可用时的手动兜底：`npm publish --access public`（`prepublishOnly` 同样会先跑 `npm test`）。
 
 `release.mjs` 遇到版本号带 `-` 会拒绝走稳定流程；beta 只能用 `release:beta`。
 
@@ -47,10 +54,11 @@ npm publish --access public  # 发布 latest（prepublishOnly 会再验一次）
 - 集中推送：少量改动不单独推送，避免产生过多提交记录。
 - 每次推送一个提交：推送前将本地提交合并为一个（squash），远端只追加一条；正常快进，不使用 `push -f`。
 - 推送前执行 `npm test` 与 `npm run test:docs`（脚本会自动执行）。
+- 推 `v<version>` tag 等于发布，除发布外不要推 tag。
 
 ```bash
 npm run release            # 预演：显示标题改动与推送说明
-npm run release -- --push  # 去「未发布」→ 写日期 → npm test → 合成一笔并推送
+npm run release -- --push  # 去「未发布」→ 写日期 → npm test → 合并提交 → 推送 main → 推 v<version> tag
 ```
 
 脚本不可用时的等价手动步骤：
@@ -77,12 +85,15 @@ gh release create vX.Y.Z --target main --title vX.Y.Z --notes-file <说明文件
 
 ```bash
 npm login                                  # 凭证过期时重新授权
-npm run release:beta -- --publish          # beta：npm test + publish --tag beta
+npm run release:beta -- --publish          # beta：publish --tag beta（prepublishOnly 跑 npm test）
 npm view dsh-imagekit@beta version         # 核对 beta
 
-npm publish --access public                # stable：发布 latest
+npm run release -- --push                  # stable：打 tag → release.yml 发布 latest
 npm view dsh-imagekit version              # 核对 latest
 ```
+
+- 稳定版不要手工 `npm publish`：tag 触发的 workflow 会发布；两条路都走会撞「版本已存在」。
+- 发布失败先看 `gh run list --workflow=Release --limit 3`，再决定是否重跑 workflow（同版本重跑不会重复发布，npm 会拒绝已存在的版本）。
 
 - 启用 2FA 时，beta 脚本会进入 npm 交互流程；也可手动执行 `npm publish --tag beta --otp=<6 位码>`。
 - 发布后如需修正，只能发下一个版本号；beta 修正发 `x.y.z-beta.N+1`，稳定版修正发下一个补丁。

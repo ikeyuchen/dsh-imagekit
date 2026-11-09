@@ -1,0 +1,18 @@
+version: 2
+updates:
+  # 宿主侧 peer 包（@deepseek-ai/dsh-tools、schemastery）只钉了一个版本验证，
+  # 上游发新版时用这里的 PR 走一遍 CI，而不是等用户报错。
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(ci)"

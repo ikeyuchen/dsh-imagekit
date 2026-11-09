@@ -6,12 +6,15 @@
  * 不允许漏步骤。默认只**预演**（不改文件、不推送），加 `--push` 才真的执行。
  *
  *   npm run release                      # 预演：显示会改什么、会推什么
- *   npm run release -- --push            # 真发布：改 CHANGELOG → npm test → 合成一笔并推送
+ *   npm run release -- --push            # 真发布：改 CHANGELOG → npm test → 合成一笔并推送 → 打 tag 触发发布
  *   npm run release -- --push -m "一句话说明"
  *
  * 前置条件（不满足直接失败，不静默带过）：
  *   - `CHANGELOG.md` 最新小节版本号 == `package.json` 的 version；
  *   - 该小节写着「（未发布）」（已带日期说明发布过了，无需再跑）。
+ *
+ * 发布入口只有一条：推送 `v<version>` tag，由 .github/workflows/release.yml 先跑 npm test，
+ * 再按版本号选 dist-tag 发布。本地不再手工 npm publish，避免同一版本发两次。
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
@@ -123,4 +126,16 @@ console.log("✓ 已推送 origin/main");
 
 const latest = must("git", ["log", "--oneline", "-1", "origin/main"], "git log origin/main").trim();
 console.log(`✓ 本次新增 1 条提交：${latest}`);
-console.log("\n下一步（可选）：npm publish --access public");
+
+// —— 4. 打 tag 并推送：这是唯一的发布入口，Release 工作流据此跑测试并发布 ——
+const tagName = `v${version}`;
+if (run("git", ["tag", "--list", tagName]).out.trim() !== "") {
+	fail(`${tagName} 已存在：这个版本发布过了。升版本号并新开一节 CHANGELOG 后再发布。`);
+}
+must("git", ["tag", "-a", tagName, "-m", `release: ${version}`], "git tag");
+must("git", ["push", "origin", tagName], "git push tag");
+console.log(`✓ 已推送 tag ${tagName}`);
+
+console.log("\nRelease 工作流会先跑 npm test 再发布：版本含 - 发 beta，否则发 latest。");
+console.log("查看进度：gh run list --workflow=Release --limit 3");
+console.log("本地不要再执行 npm publish，否则同一版本会被发布两次。");
