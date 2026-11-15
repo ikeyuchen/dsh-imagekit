@@ -10,7 +10,7 @@ apply(ctx, config)
 ├── registerUpscaleTools    放大 1 件
 ├── registerSetupTools      组件安装 image_setup 1 件
 ├── applyEngine             引擎 comfy 1 件
-├── registerProcessTools    像素处理 5 件（standard 起）
+├── registerProcessTools    像素处理 5 件（standard 起；lean 档合并为 image_process 1 件）
 ├── applyPerf               性能 perf 1 件（standard 起）
 └── applyEnv                环境 env_probe 与 preflight 共 2 件（仅 all）
 ```
@@ -18,10 +18,13 @@ apply(ctx, config)
 | 档位 | 件数 | 组成 |
 |---|---|---|
 | `minimal` | 6 | 生图 2、手册 1、放大 1、安装 1、引擎 1 |
-| `standard`（默认） | 14 | minimal + 任意工作流 2 + 处理 5 + perf 1 |
+| `lean`（默认） | 9 | standard 减去 `perf`，像素处理 5 件合并为 `image_process` |
+| `standard` | 14 | minimal + 任意工作流 2 + 处理 5 + perf 1 |
 | `all` | 16 | standard + env_probe + preflight |
 
-分档依据：插件的主要功能为生图与放大，其余工具仅在相关场景使用。常驻成本见 `npm run tokens`（1520 / 2960 / 3260 tokA）。
+分档依据：插件的主要功能为生图与放大，其余工具仅在相关场景使用。`lean` 用 `image_process(action=...)`
+把五个像素工具收成一个 schema，属于「工具合并」的省 token 做法。常驻成本见 `npm run tokens`
+（1276 / 2178 / 2689 / 2989 tokA，依次为 minimal / lean / standard / all）。
 
 所有工具共享同一 Cordis 插件生命周期与系统提示段。`image_generate` 的引擎兜底可通过
 `ctx.tools.get("comfy")` 找到同包引擎工具，不依赖外部插件是否存在。
@@ -72,11 +75,13 @@ apply(ctx, config)
 | 局部标记 | `image_mark_region`（`cx`、`cy`、`radius`、`stroke_width`、`color`） | 支持 | 不适用 |
 | 动图合成 | `anim_encode`（`frames`、`durations_ms`、`format`、`quality`、`loop`、`max_size`） | 支持 | 不适用 |
 | 姿势几何校验 | `pose_check`（`character_image`、`skeleton_image`、`threshold`） | 支持 | 不适用 |
-| 显存回收 | `unload_after`、`vramIdleFreeMinutes`、`comfy op=free` | 支持 | 支持 |
+| 显存回收 | `unload_after`、`vramIdleFreeMinutes`（插件引擎到点重启）、`comfy op=free` | 支持 | 支持 |
 | 引擎与组件 | `comfy`（start/stop/restart/free/interrupt/upgrade）与 `image_setup`（engine/models/upscale） | 支持 | 不适用 |
-| 提示词手册 | `image_prompt_guide`（`section`，常驻 131 tokA） | 支持 | 不适用 |
+| 提示词手册 | `image_prompt_guide`（`section`，常驻 69 tokA） | 支持 | 不适用 |
 
 后端选择：`generationBackend=auto` 先探测网关，离线时使用直连；`direct` 仅使用直连；`gateway` 仅使用网关。
+
+「直连」当前由 ComfyUI 承载。若将来换成别的引擎，各工具的得失见[后端对照](BACKENDS.md)。
 
 ## 已知能力缺口
 

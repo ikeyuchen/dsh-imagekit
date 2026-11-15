@@ -209,14 +209,14 @@ image_upscale(input_path="<outputDir>/xxx.png")
 |---|---|---|
 | `image_generate` 报网关无法连接 | 引擎或网关未启动 | `comfy(action="control", op="start")`，或看 `image_service_status` |
 | 首次出图明显较慢（7–20 秒起） | 模型冷加载 | 属于正常现象；连续生成会加快 |
-| 显存被模型占用且未释放 | 模型常驻属于正常现象 | 生成时传 `unload_after=true` 立刻释放；或调 `vramIdleFreeMinutes`（默认 10 分钟）自动释放 |
+| 显存被模型占用且未释放 | 模型常驻属于正常现象 | 生成时传 `unload_after=true` 立刻释放；或调 `vramIdleFreeMinutes`（默认 10 分钟，插件拉起的引擎到点自动重启、外部引擎只发 `/free`） |
 | 报「Image gateway unreachable」 | 使用旧模板（`*_pe` / `cn` / `vnccs`）但未安装网关 | 文生图/编辑改回 `generationBackend=auto`；旧模板需要兼容网关 |
 | CUDA/显存不足 | 12 GB 显存运行 2K | 降低至 `tier="standard"`，改选 `lowvram` 模型包，或执行 `comfy(action="control", op="free")` |
 | 生成新图、未按参考图修改 | 模板为 t2i | 插件会自动切换至编辑模板；显式填写 t2i 时会报错，按提示修改 |
 | 出图没有透明背景 | 未在 prompt 中写明 | 加 `透明背景` / `transparent background` |
 | 放大报「模型文件缺失」 | 引擎升级后目录变了 | `image_setup(action="install", component="upscale")` 重装 |
 | 中文文字模糊 | 提示词描述不清 | 文字加引号原文；实测 `t2i_turbo` 也能正确渲染中文 |
-| 报 `VBAR allocation failed` | 引擎长时间运行后 CUDA 地址分配失败 | 执行 `comfy(action="control", op="restart")`；首张图需要 7–20 秒加载 |
+| 报 `VBAR allocation failed` | 引擎进程的虚拟地址空间碎片化（AIMDO 预留失败，不是显存不足；`/free` 救不了） | 执行 `comfy(action="control", op="restart")`；首张图需要 7–20 秒加载。默认档也会在空闲 10 分钟后自动重启，报错文本里带同样的建议 |
 
 ## 5. 工具集档位与常驻成本
 
@@ -224,14 +224,17 @@ image_upscale(input_path="<outputDir>/xxx.png")
 
 | 档位 | 工具数 | 常驻 token（tokA / tokB） | 含什么 |
 |---|---|---|---|
-| `minimal` | 6 | 1520 / 1776 | `image_generate`、`image_prompt_guide`、`image_upscale`、`image_service_status`、`image_setup`、`comfy` |
-| `standard`（默认） | 14 | 2960 / 3455 | minimal + `image_generate_raw`、`image_workflow_inspect` + 像素处理 5 件 + `perf` |
-| `all` | 16 | 3260 / 3814 | standard + `env_probe`、`preflight` |
+| `minimal` | 6 | 1276 / 1489 | `image_generate`、`image_prompt_guide`、`image_upscale`、`image_service_status`、`image_setup`、`comfy` |
+| `lean`（默认） | 9 | 2178 / 2541 | standard 减去 `perf`，像素处理 5 件合并为 `image_process`（用 `action` 选 resize / mark_region / flatten_alpha / anim_encode / pose_check） |
+| `standard` | 14 | 2689 / 3134 | minimal + `image_generate_raw`、`image_workflow_inspect` + 像素处理 5 件 + `perf` |
+| `all` | 16 | 2989 / 3493 | standard + `env_probe`、`preflight` |
 
 口径（估算）：宿主只发 `name + description + parameters`（outputSchema 不发）+ 提示段；tokA = CJK 1.6 / ASCII 4.2 字每 token，tokB 为保守值。
 可随时复测：`npm run tokens`。
 
-仅使用生图与放大时，将档位设为 `minimal`；需要运行自定义 ComfyUI 工作流或使用像素处理时，使用 `standard`。
+仅使用生图与放大时，将档位设为 `minimal`；需要运行自定义 ComfyUI 工作流或使用像素处理时，先用默认的 `lean`；
+希望像素处理各有一件独立工具（参数提示更直接）时，改用 `standard`。
+设置页「性能与显存」面板依赖 `perf` 工具，`lean` / `minimal` 下该面板只显示一句提示——要面板就用 `standard` 或 `all`。
 
 档位在设置页「自动行为 → 工具集档位」里切换：
 

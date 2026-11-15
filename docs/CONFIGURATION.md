@@ -17,8 +17,8 @@
 | | `downloadConnections` | `4` | 大文件下载的分片连接数（`1`/`2`/`4`/`8`）；服务端不支持 Range 会自动回退单流 |
 | | `githubProxy` | 空 | GitHub 下载代理（如 `https://ghfast.top/`）。仅在官方路径不可用时兜底，只代理 `github.com` 链接，仍按清单 sha256 校验；实测不提升速度，只提升可达性 |
 | | `upscaleSource` | `official` | `official` / `sourceforge`（预留，当前清单未登记地址，会回落 `official`）/ `custom` |
-| 性能与显存 | 只读 | 实时读取 | 只读面板，依赖 `perf` 工具；`minimal` 档不注册该工具，面板不可用 |
-| 自动行为 | `toolsetProfile` | `standard` | `minimal` 6 件 / `standard` 14 件 / `all` 16 件 |
+| 性能与显存 | 只读 | 实时读取 | 只读面板，依赖 `perf` 工具；`lean` / `minimal` 档不注册该工具，面板只显示一句提示 |
+| 自动行为 | `toolsetProfile` | `lean` | `minimal` 6 件 / `lean` 9 件 / `standard` 14 件 / `all` 16 件 |
 | | `autoDownload` | `off` | 保留字段，当前代码不会自动下载 |
 | | `autoCheckUpdates` | `on` | `off` 时组件行不再显示「可升级/修复」提示（版本比对仍会做，只是不提示） |
 | | `keepVersions` | `1` | 保留的旧版本备份份数（0–2） |
@@ -29,7 +29,7 @@
 |---|---|---|
 | `gatewayUrl` | `http://127.0.0.1:8189` | 本地生图网关 |
 | `generationBackend` | `auto` | 出图后端：`auto`（网关离线自动用内置直连）/ `direct` / `gateway` |
-| `vramIdleFreeMinutes` | `10` | 空闲多少分钟后让引擎卸载模型释放显存（`0` = 不自动释放） |
+| `vramIdleFreeMinutes` | `10` | 空闲多少分钟后回收引擎显存：插件拉起的引擎到点重启（AIMDO 下 `/free` 释放不了地址空间），用户自己开的引擎只发 `/free`；`0` = 不自动 |
 | `generateTimeoutSeconds` / `processTimeoutSeconds` / `upscaleTimeoutSeconds` | 900 / 120 / 600 | 单次调用上限 |
 | `selfHealWaitSeconds` | 420 | 引擎自愈等待 |
 | `pythonCommand` / `nodePath` / `pythonPath` / `pnpmPath` | 空 | 空 = 按顺序探测：DSH 自带 Python 运行时（已含 Pillow/numpy）→ PATH 上的 `python` → `py` |

@@ -74,14 +74,15 @@ dsh plugin --profile web add ./dsh-imagekit
 | --- | --- |
 | `image_generate` / `image_generate_raw` | 文生图、参考图改图、任意工作流。整份 API 图可离线直连，模板需要网关。提供 `draft` / `standard` / `quality` 三档，省略 `tier` 时使用 `standard` |
 | `image_workflow_inspect` | 查看网关模板解析后的 ComfyUI 图 |
-| `image_prompt_guide` | 内置提示词手册，包含选档、分类配方、文字渲染、参考图编辑、放大路由与能力边界；按需返回，手册正文不占常驻上下文，工具声明约 131 tokA |
+| `image_prompt_guide` | 内置提示词手册，包含选档、分类配方、文字渲染、参考图编辑、放大路由与能力边界；按需返回，手册正文不占常驻上下文，工具声明约 69 tokA |
 | `image_upscale` | Real-CUGAN / Real-ESRGAN / waifu2x / RealSR，共 10 个预设，来自上游官方 MIT/BSD 构建，Vulkan 直通 GPU |
 | 像素处理 5 件 | 降采样、区域标记、透明扁平化、动图合成、姿势检查 |
 | `comfy` / `image_service_status` | ComfyUI 引擎启停、自愈与升级 |
 | `image_setup` | 模型与引擎的下载、校验、备份回滚与旧版本清理 |
 | `perf` / `env_probe` / `preflight` | 显存采样、环境体检、重任务前置检查 |
 
-工具按档位注册：`minimal` 6 件、`standard` 14 件、`all` 16 件，默认 `standard`。
+工具按档位注册：`minimal` 6 件、`lean` 9 件（默认）、`standard` 14 件、`all` 16 件。
+`lean` 与 `standard` 只差两处：不带 `perf`（性能与显存面板），像素处理 5 件合并为一个 `image_process`，常驻 schema 更小。
 
 ## 尺寸与放大
 
@@ -135,7 +136,7 @@ Qwen-Image 2.1 原生分辨率约为 2K。官方示例使用 `2048×2048`、40 �
 
 ## 文档
 
-[用法](docs/USAGE.md) · [提示词手册](docs/PROMPTS.md) · [模型与参数](docs/MODEL.md) · [配置](docs/CONFIGURATION.md) · [引擎版本](docs/ENGINE-VERSIONS.md) · [架构](docs/ARCHITECTURE.md) · [实现](docs/IMPLEMENTATION.md) · [图标](docs/ICON.md) · [发布](docs/RELEASING.md) · [变更](CHANGELOG.md) · [第三方](THIRD_PARTY.md)
+[用法](docs/USAGE.md) · [提示词手册](docs/PROMPTS.md) · [模型与参数](docs/MODEL.md) · [配置](docs/CONFIGURATION.md) · [引擎版本](docs/ENGINE-VERSIONS.md) · [架构](docs/ARCHITECTURE.md) · [后端对照](docs/BACKENDS.md) · [实现](docs/IMPLEMENTATION.md) · [图标](docs/ICON.md) · [发布](docs/RELEASING.md) · [变更](CHANGELOG.md) · [第三方](THIRD_PARTY.md)
 
 ## 许可
 

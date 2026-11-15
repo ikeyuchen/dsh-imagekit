@@ -45,9 +45,13 @@ apply(ctx, config);
 const unwrap = (value) =>
   value !== null && typeof value === 'object' && typeof value.get === 'function' ? value.get() : value;
 
-// 三档工具清单：minimal（只够跑生图+放大）/ standard（默认）/ all
+// 四档工具清单：minimal（只够跑生图+放大）/ lean（默认，像素处理合并）/ standard / all
 const PROFILES = {
   minimal: ["image_generate", "image_prompt_guide", "image_service_status", "image_upscale", "image_setup", "comfy"],
+  lean: [
+    "image_generate", "image_generate_raw", "image_workflow_inspect", "image_prompt_guide", "image_service_status",
+    "image_process", "image_upscale", "image_setup", "comfy",
+  ],
   standard: [
     "image_generate", "image_generate_raw", "image_workflow_inspect", "image_prompt_guide", "image_service_status",
     "image_resize_lanczos", "image_mark_region", "image_flatten_alpha", "anim_encode", "pose_check",

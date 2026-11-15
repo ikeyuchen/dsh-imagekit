@@ -64,7 +64,7 @@ const WHITELIST = {
 		"negative_prompt", "resolution", "denoise",
 	],
 	// 请求体内部字段（不是工具参数，模板占位符 / 网关字段）
-	requestFields: [],
+	requestFields: ["init_image", "custom_sigmas", "mask_image", "ref_image_args"],
 };
 const WHITELIST_ALL = new Set(Object.values(WHITELIST).flat());
 
@@ -86,7 +86,7 @@ const measureTools = async () => {
 	const all = new Set();
 	const params = new Set();
 	const counts = {};
-	for (const profile of ["minimal", "standard", "all"]) {
+	for (const profile of ["minimal", "lean", "standard", "all"]) {
 		const registered = [];
 		const base = typeof mod.Config === "function" ? mod.Config({}) : mod.Config;
 		const ctx = {

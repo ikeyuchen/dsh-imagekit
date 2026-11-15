@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Image Generation Studio (generate / process / upscale)",
-    "description": "Local image generation and upscaling: Qwen-Image text-to-image / edits, Vulkan super-resolution, pixel tools, plus ComfyUI engine and VRAM monitoring. Toolset profile: minimal / standard / all."
+    "description": "Local image generation and upscaling: Qwen-Image text-to-image / edits, Vulkan super-resolution, pixel tools, plus ComfyUI engine and VRAM monitoring. Toolset profile: minimal / lean / standard / all."
   }
 }

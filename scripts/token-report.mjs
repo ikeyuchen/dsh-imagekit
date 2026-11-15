@@ -111,7 +111,7 @@ const measure = async (profile) => {
 };
 
 const out = [];
-for (const p of ["minimal", "standard", "all"]) out.push(await measure(p));
+for (const p of ["minimal", "lean", "standard", "all"]) out.push(await measure(p));
 
 if (asJson) {
 	console.log(JSON.stringify({ generatedAt: new Date().toISOString(), profiles: out }, null, 2));

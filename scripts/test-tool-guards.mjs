@@ -103,6 +103,37 @@ console.log("lib/process.js — 像素工具参数校验");
   });
 }
 
+console.log("\nlib/process.js — image_process（lean 合并档）");
+{
+  const { register } = await import("../lib/process.js");
+  const tools = collect(register, { pythonCommand: "", timeoutSeconds: 600, merge: true });
+  assert.equal(tools.size, 1, `合并档应只注册 1 个工具，实际 ${tools.size}`);
+  const proc = tools.get("image_process");
+  assert.ok(proc, "image_process 未注册");
+
+  await check("未知 action 明确报错并列出全部 action", async () => {
+    await assert.rejects(() => proc.execute({ action: "nope" }), /unknown action .*expected one of/);
+  });
+  await check("缺 action 在参数校验层就被拒绝", async () => {
+    await assert.rejects(() => proc.execute({}), /missing required property "action"/);
+  });
+  await check("resize 经合并工具仍要求 exactly one 尺寸", async () => {
+    await assert.rejects(() => proc.execute({ action: "resize", input_path: FIXTURE }), /exactly ONE of width \/ height \/ percent/);
+  });
+  await check("mark_region 经合并工具仍要求 cx/cy/radius", async () => {
+    await assert.rejects(() => proc.execute({ action: "mark_region", input_path: FIXTURE }), /needs cx/);
+  });
+  await check("flatten_alpha 经合并工具输入缺失时报错", async () => {
+    await assert.rejects(() => proc.execute({ action: "flatten_alpha", input_path: missing }), /Input image not found/);
+  });
+  await check("anim_encode 经合并工具仍要求 >= 2 帧", async () => {
+    await assert.rejects(() => proc.execute({ action: "anim_encode", frames: [FIXTURE] }), /frames must be an array of >= 2/);
+  });
+  await check("pose_check 经合并工具要求两张输入图", async () => {
+    await assert.rejects(() => proc.execute({ action: "pose_check", character_image: FIXTURE }), /skeleton_image/);
+  });
+}
+
 console.log("\nlib/upscale.js — image_upscale 参数与引擎校验");
 {
   const { register } = await import("../lib/upscale.js");
@@ -138,6 +169,22 @@ console.log("\nlib/upscale.js — image_upscale 参数与引擎校验");
       await assert.rejects(() => up.execute({ input_path: missing }), /Input image not found/);
     });
 
+    await check("input_path 传入空字符串时报错（schema 放行空串，运行时补一道）", async () => {
+      await assert.rejects(() => up.execute({ input_path: "   " }), /input_path must be a path string \(got an empty string\)/);
+    });
+
+    await check("save_to 传空串时报错（不落到引擎里写出无扩展名文件）", async () => {
+      await assert.rejects(
+        () => up.execute({ input_path: FIXTURE, save_to: "  " }),
+        /save_to must be a path string \(got an empty string\)/
+      );
+    });
+
+    await check("路径参数类型由 schema 层先拦（运行时守卫只是空串兜底）", async () => {
+      await assert.rejects(() => up.execute({ input_path: { path: FIXTURE } }), /"input_path" must be a string/);
+      await assert.rejects(() => up.execute({ input_path: FIXTURE, save_to: ["out"] }), /"save_to" must be a string/);
+    });
+
     await check("扩展名与文件头都不是图片时报错", async () => {
       await assert.rejects(() => up.execute({ input_path: notImage }), /Unrecognized image content/);
     });
@@ -149,6 +196,49 @@ console.log("\nlib/upscale.js — image_upscale 参数与引擎校验");
       );
     });
   }
+}
+
+console.log("\nlib/generate/tools.js — image_generate 参数闸门（离线：在触网前就失败）");
+{
+  const { registerImageGenTools } = await import("../lib/generate/tools.js");
+  const tools = collect((ctx, cfg) => registerImageGenTools(ctx, cfg, 600000, { includeAdvanced: true }), { outputDir: tmp });
+  const gen = tools.get("image_generate");
+  assert.ok(gen, "image_generate 未注册");
+
+  await check("prompt 为纯空白时报错（schema 的 required 只管传没传，空串照样进引擎）", async () => {
+    await assert.rejects(
+      () => gen.execute({ prompt: "   " }, {}),
+      /prompt must be a non-empty string describing the image/
+    );
+  });
+
+  await check("编辑类模板缺参考图时本地报错（不把 400 留给网关）", async () => {
+    await assert.rejects(
+      () => gen.execute({ prompt: "把猫改成狗", template: "qwen_image_2_1_edit" }, {}),
+      /template "qwen_image_2_1_edit" is an image-editing template and needs at least one ref image[\s\S]*ref_images: \["<absolute path>"\]/
+    );
+  });
+
+  await check("ref_images 含空字符串时报错（旧行为是静默丢弃，参考图“悄悄不生效”）", async () => {
+    await assert.rejects(
+      () => gen.execute({ prompt: "x", ref_images: [FIXTURE, ""] }, {}),
+      /ref_images\[1\] must be a non-empty absolute path string \(got an empty string\)/
+    );
+  });
+
+  await check("ref_images 含非字符串项时由 schema 层拒绝", async () => {
+    await assert.rejects(
+      () => gen.execute({ prompt: "x", ref_images: [FIXTURE, { path: FIXTURE }] }, {}),
+      /"ref_images\[1\]" must be a string/
+    );
+  });
+
+  await check("t2i 模板 + 参考图仍明确拒绝（回归：不静默忽略参考图）", async () => {
+    await assert.rejects(
+      () => gen.execute({ prompt: "x", template: "qwen_image_2_1_t2i", ref_images: [FIXTURE] }, {}),
+      /is text-to-image and ignores ref_images/
+    );
+  });
 }
 
 console.log("\nlib/engine/index.js — comfy 网关参数校验");
@@ -177,6 +267,31 @@ console.log("\nlib/engine/index.js — comfy 网关参数校验");
 
   await check("未知 action 在参数校验层被拒绝", async () => {
     await assert.rejects(() => comfy.execute({ action: "bogus" }), /"action" must be one of/);
+  });
+}
+
+console.log("\nlib/generate/direct.js — 引擎失败提示翻译");
+{
+  const { engineFailureHint } = await import("../lib/generate/direct.js");
+
+  await check("VBAR 预留失败 → 重启建议（不再让用户对着 JSON 猜）", async () => {
+    const hint = engineFailureHint(
+      '{"node_type":"CLIPTextEncode","exception_message":"VBAR allocation failed\\n","exception_type":"MemoryError"}'
+    );
+    assert.match(hint, /virtual address space is fragmented/);
+    assert.match(hint, /op="restart"/);
+  });
+
+  await check("C 库原始报错文案（含拼写 reseve）也能识别", async () => {
+    assert.match(
+      engineFailureHint("aimdo: src/model-vbar.c:269:ERROR:Could not reseve Virtual Address space for VBAR"),
+      /virtual address space is fragmented/
+    );
+  });
+
+  await check("无关错误不加提示", async () => {
+    assert.equal(engineFailureHint('{"exception_message":"Value not in list: sampler_name"}'), "");
+    assert.equal(engineFailureHint(undefined), "");
   });
 }
 

@@ -137,6 +137,7 @@ cfg > 1 时每步同时计算正负两条分支，耗时约为原来的 1.5 倍�
 
 引擎连续运行约 7 小时后，文本编码节点报 `VBAR allocation failed`（CUDA 虚拟地址分配失败），
 即使显存显示空闲。处理方式为执行 `comfy(action="control", op="restart")`；重启后首张图需要 7–20 秒加载模型，之后恢复。已写入 [USAGE.md](./USAGE.md) 故障表。
+插件默认 `vramIdleFreeMinutes=10`：插件拉起的引擎空闲到点会自己重启，用户自己开的引擎只发 `/free`（见 [CONFIGURATION.md](./CONFIGURATION.md)）。
 
 ## 6. 像素预算与清晰度
 

@@ -37,7 +37,7 @@ models.manifest.json
   文生图用 `UNETLoader/CLIPLoader/VAELoader/EmptyLatentImage/KSampler`；参考图编辑用 `LoadImage`（先 `/upload/image` 上传）
   + `TextEncodeQwenImage21`（输出 positive/negative/latent），turbo 模板自动挂 LoRA。
   `image_generate_raw` 的整份 `workflow` 也走这里（`generateGraphDirect`），不需要网关；`from_template` 仍要网关。
-  生成后按 `vramIdleFreeMinutes` 安排空闲 `/free`；`unload_after=true` 则立即释放。
+  生成后按 `vramIdleFreeMinutes` 安排空闲回收：插件自己拉起的引擎到点重启（`restartIfIdle`，队列忙时跳过），用户自己开的引擎只发 `/free`；`unload_after=true` 则立即释放。
 - 生成结果在模型可见 render 里回显 `seed / size（或 resolution）/ steps / cfg / template / backend`；
   `seed=-1` 由插件先决定实际值再同时传给直连与网关，保证两条链路都能复现。
 - `lib/upscale.js` 的 `image_upscale` 预设覆盖上游官方 Real-CUGAN / waifu2x / Real-ESRGAN / RealSR 模型；四个引擎包由 `image_setup` 从上游官方 release 下载并校验 sha256。
