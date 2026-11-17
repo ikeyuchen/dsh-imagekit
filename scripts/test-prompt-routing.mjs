@@ -11,7 +11,7 @@
  */
 import assert from "node:assert/strict";
 
-const { resolveTemplateForRefs, applyDefaultTier, resolveSeed, assertImageSize, formatMetaLine, readPromptGuide, promptGuideTopics, slicePromptGuide } = await import("../lib/generate/tools.js");
+const { resolveTemplateForRefs, applyDefaultTier, resolveSeed, assertImageSize, formatMetaLine, readPromptGuide, promptGuideTopics, slicePromptGuide, workflowSeeds, workflowDigest } = await import("../lib/generate/tools.js");
 
 let passed = 0;
 const check = (label, fn) => {
@@ -110,7 +110,10 @@ check("英文/近义 section 关键字能命中中文小节", () => {
 		["troubleshoot", "## 8."],
 		["tier", "## 0."],
 		["写实", "## 2."],
-		["poster", "## 2."]
+		["poster", "## 2."],
+		["物料", "## 3."],
+		["分镜", "## 11."],
+		["storyboard", "## 11."]
 	]) {
 		const { content, matched } = slicePromptGuide(guide, key);
 		assert.equal(matched, true, `section ${key} should match`);
@@ -122,6 +125,49 @@ check("省略 section 仍返回全文（显式全量路径保留）", () => {
 	const { content, matched } = slicePromptGuide(guide, "");
 	assert.equal(matched, false);
 	assert.equal(content, guide);
+});
+
+check("多个 section 一次取多节（任务横跨两节时不必分两次调用）", () => {
+	const { content, matched } = slicePromptGuide(guide, "edit,text");
+	assert.equal(matched, true);
+	assert.ok(content.includes("## 3."), "应含文字渲染节");
+	assert.ok(content.includes("## 4."), "应含参考图编辑节");
+	// 文档顺序：3 在 4 之前，且不夹带其它小节
+	assert.ok(content.indexOf("## 3.") < content.indexOf("## 4."));
+	assert.ok(!content.includes("## 5."));
+});
+
+check("显存类关键字（oom / 显存）能命中排查节", () => {
+	for (const key of ["oom", "显存", "out of memory"]) {
+		const { content, matched } = slicePromptGuide(guide, key);
+		assert.equal(matched, true, `section ${key} should match`);
+		assert.ok(content.startsWith("## 8."), `section ${key} → 排查速查, got ${content.split("\n")[0]}`);
+	}
+});
+
+console.log("raw 工作流取证（seed / 指纹）");
+
+check("workflowSeeds：读回 KSampler.seed 与 RandomNoise.noise_seed，忽略非 seed 字段", () => {
+	const graph = {
+		"3": { class_type: "KSampler", inputs: { seed: 42, steps: 25, sampler_name: "euler" } },
+		"4": { class_type: "RandomNoise", inputs: { noise_seed: 7 } },
+		"5": { class_type: "CLIPTextEncode", inputs: { text: "seed" } },
+		"6": { class_type: "EmptyLatentImage", inputs: { width: 1024, height: 1024 } }
+	};
+	const seeds = workflowSeeds(graph);
+	assert.equal(seeds.length, 2);
+	assert.deepEqual(seeds.map((s) => s.value).sort((a, b) => a - b), [7, 42]);
+	assert.ok(seeds.some((s) => s.node === "4" && s.field === "noise_seed"));
+	assert.equal(workflowSeeds({}).length, 0);
+});
+
+check("workflowDigest：键序不同 → 同指纹；值不同 → 指纹变", () => {
+	const a = { "1": { class_type: "KSampler", inputs: { seed: 1, model: ["2", 0] } }, "2": { class_type: "CheckpointLoaderSimple", inputs: { ckpt_name: "x" } } };
+	const b = { "2": { inputs: { ckpt_name: "x" }, class_type: "CheckpointLoaderSimple" }, "1": { inputs: { model: ["2", 0], seed: 1 }, class_type: "KSampler" } };
+	const c = { ...a, "1": { class_type: "KSampler", inputs: { seed: 2, model: ["2", 0] } } };
+	assert.equal(workflowDigest(a), workflowDigest(b));
+	assert.notEqual(workflowDigest(a), workflowDigest(c));
+	assert.match(workflowDigest(a), /^[0-9a-f]{16}$/);
 });
 
 check("默认档位：省略 tier → standard；显式档位不被改写", () => {

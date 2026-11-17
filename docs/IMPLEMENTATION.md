@@ -38,8 +38,19 @@ models.manifest.json
   + `TextEncodeQwenImage21`（输出 positive/negative/latent），turbo 模板自动挂 LoRA。
   `image_generate_raw` 的整份 `workflow` 也走这里（`generateGraphDirect`），不需要网关；`from_template` 仍要网关。
   生成后按 `vramIdleFreeMinutes` 安排空闲回收：插件自己拉起的引擎到点重启（`restartIfIdle`，队列忙时跳过），用户自己开的引擎只发 `/free`；`unload_after=true` 则立即释放。
-- 生成结果在模型可见 render 里回显 `seed / size（或 resolution）/ steps / cfg / template / backend`；
-  `seed=-1` 由插件先决定实际值再同时传给直连与网关，保证两条链路都能复现。
+- 风格预设（`lib/generate/styles.js` + 插件根 `styles.json`）：与档位正交——档位管尺寸/步数/模板，
+  风格管「这句话怎么说」。每条风格是一句带 `{prompt}` 占位的完整骨架（不是关键词表，2.1 对标签式提示词是负收益），
+  字段 `description` / `template` / `negative?` / `tags?`；加载失败或字段拼错显式报错，未知风格列出可用项。
+  应用规则：只对文生图（编辑模板会拒绝并给改法，编辑 prompt 写的是「改什么、留什么」，套骨架会压扁指令）；
+  ≤120 单元整句套，更长的只追加 `{prompt}` 之后的后缀；风格自带 negative 并入 `negative_prompt`，
+  但只在 `cfg` > 1 时生效（默认 1.0 负条件被乘 0），meta 用 `style` / `style_negative_applied` 如实标注。
+- 生成结果在模型可见 render 里回显 `seed / size（或 resolution）/ steps / cfg / template / backend` 与耗时；
+  `seed=-1` 由插件先决定实际值再同时传给直连与网关，保证两条链路都能复现。`image_generate_raw` 额外回填
+  `seed`（扫图里 `seed` / `noise_seed` 字段）、`seeds`（全部命中）与 `workflow_digest`（图按键序归一后的 sha256 前缀），
+  用来判断「这次实际提交的是哪份图」。
+- 引擎报错翻译（`lib/generate/direct.js#engineFailureHint`）：VBAR 类（虚拟地址空间碎片化）→ 建议重启；
+  真显存不足（`CUDA out of memory`、`allocation on device` 等）→ 给降档阶梯（draft → 缩尺寸 → 减参考图 → `unload_after`）；
+  直连与网关两条链路都拼这段提示，网关路径先截取 2000 字符的响应体。
 - `lib/upscale.js` 的 `image_upscale` 预设覆盖上游官方 Real-CUGAN / waifu2x / Real-ESRGAN / RealSR 模型；四个引擎包由 `image_setup` 从上游官方 release 下载并校验 sha256。
 - 升级与备份（`lib/setup.js`）：
   - `upgrade` 比较清单 `version` 与已安装版本；相同且 `missing=0` 时跳过；

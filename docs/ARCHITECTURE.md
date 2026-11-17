@@ -24,7 +24,7 @@ apply(ctx, config)
 
 分档依据：插件的主要功能为生图与放大，其余工具仅在相关场景使用。`lean` 用 `image_process(action=...)`
 把五个像素工具收成一个 schema，属于「工具合并」的省 token 做法。常驻成本见 `npm run tokens`
-（1276 / 2178 / 2689 / 2989 tokA，依次为 minimal / lean / standard / all）。
+（1334 / 2236 / 2747 / 3047 tokA，依次为 minimal / lean / standard / all）。
 
 所有工具共享同一 Cordis 插件生命周期与系统提示段。`image_generate` 的引擎兜底可通过
 `ctx.tools.get("comfy")` 找到同包引擎工具，不依赖外部插件是否存在。
@@ -64,10 +64,11 @@ apply(ctx, config)
 | 文生图与批量候选 | `image_generate`（`prompt`、`tier`、`width`、`height`、`steps`、`seed`、`batch_size`） | 支持 | 支持 |
 | 参考图编辑 | `image_generate` 与 `ref_images`。单图使用 `*_edit`，2–3 张使用 `*_edit3`，4 张以上使用 `*_edit6`，单图且 `denoise<1` 使用 `*_i2i` | 支持，按张数拼节点 | 支持，上限 10 张 |
 | 文字渲染调档 | 同 `image_generate`（`steps`、`cfg`、`negative_prompt`）与 `tier=quality` | 支持 | 支持 |
+| 观感预设 | `image_generate` + `style`（`styles.json` 九条：realistic / anime / product / sticker / film / ink / flat / clean-cel / design-dense）；骨架套在描述外，长描述只追加后缀；仅文生图，编辑模板拒绝 | 支持 | 支持 |
 | 部分重绘（保留结构） | `image_generate` + 单张 `ref_images` + `denoise` 0.7–0.9 | 支持，走 VAEEncode 与 KSampler | 支持，自动使用 i2i 模板 |
 | 任意工作流 | `image_generate_raw`：整份 `workflow`（API 图） | 支持，提交至 `/prompt` | 支持 |
 | 模板巡检 | `image_workflow_inspect`：解析网关模板 | 不适用 | 支持 |
-| 结果可复现 | `image_generate` 的 render 回显 `seed`、`size`、`steps`、`cfg`、`template`、`backend` | 支持 | 支持 |
+| 结果可复现 | `image_generate` 的 render 回显 `seed`、`size`、`steps`、`cfg`、`template`、`backend` 与耗时；`image_generate_raw` 另回 `seed`（扫采样器节点）与 `workflow_digest`（生效图的键序稳定指纹） | 支持 | 支持 |
 | 快速草稿档 | `tier=draft`。直连使用官方 turbo 8 步协议（`ManualSigmas` 与 `CFGGuider`，需要 `fast` 包）；缺少 turbo 模型且本地有 turbo LoRA 时回退至 6 步 LoRA；两者均缺失时返回错误 | 支持 | 支持 |
 | 放大 | `image_upscale`（`engine`、`scale`、`denoise`，10 个预设） | 支持 | 不适用 |
 | 降采样与转格式 | `image_resize_lanczos`（`width`、`percent`、`format`、`quality`） | 支持 | 不适用 |
@@ -77,7 +78,7 @@ apply(ctx, config)
 | 姿势几何校验 | `pose_check`（`character_image`、`skeleton_image`、`threshold`） | 支持 | 不适用 |
 | 显存回收 | `unload_after`、`vramIdleFreeMinutes`（插件引擎到点重启）、`comfy op=free` | 支持 | 支持 |
 | 引擎与组件 | `comfy`（start/stop/restart/free/interrupt/upgrade）与 `image_setup`（engine/models/upscale） | 支持 | 不适用 |
-| 提示词手册 | `image_prompt_guide`（`section`，常驻 69 tokA） | 支持 | 不适用 |
+| 提示词手册 | `image_prompt_guide`（`section`，可逗号并列多节，常驻 82 tokA） | 支持 | 不适用 |
 
 后端选择：`generationBackend=auto` 先探测网关，离线时使用直连；`direct` 仅使用直连；`gateway` 仅使用网关。
 
@@ -95,5 +96,5 @@ apply(ctx, config)
 | 编辑模式 `batch_size` | 直连的编辑图每次生成一张，`batch_size` 只影响 t2i | 多次调用 |
 | turbo 档的编辑 | 官方 turbo 编辑为整图重绘（官方配置为 cfg 8），实测会改变主体，不能保留结构 | 需要保留结构时使用 `denoise` 0.7–0.9 的 i2i 路径 |
 
-直连后端覆盖手册 §0–§10 的日常路径，包括生图、编辑、文字、放大、动图与显存。
+直连后端覆盖手册 §0–§11 的日常路径，包括生图、编辑、文字与物料、放大、动图、显存与分镜。
 留在外部的只有质量校验与需要额外模型的控制，两者都不是默认路径的必需环节。

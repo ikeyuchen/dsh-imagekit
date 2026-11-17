@@ -113,6 +113,25 @@ image_generate(prompt="<按 PROMPTS-CORE.md §1 的结构写>")
 
 显式参数优先于档位（`tier="draft", steps=20` → 用 20 步）。
 
+风格预设（`style`）把一句现成骨架套在你的描述外面，省得每次重写观感句：
+
+| style | 观感 |
+|---|---|
+| `realistic` | 写实照片：85mm 浅景深、自然光 |
+| `anime` | 赛璐璐二次元：干净线稿与平涂 |
+| `clean-cel` | 干净赛璐璐：人物平滑、笔触只留背景 |
+| `design-dense` | 设计密集：道具、结构、前景遮挡 |
+| `product` | 3D 产品 / 手办：影棚柔光、金属与哑光 |
+| `sticker` | RGBA 透明贴纸：白描边、不投影 |
+| `film` | 35mm 胶片：颗粒、暖白平衡、暗角 |
+| `ink` | 国风水墨：宣纸肌理、五层墨色、留白 |
+| `flat` | 扁平插画：几何形体、两三主色、硬边缘 |
+
+- 只对文生图生效：带 `ref_images`（自动切编辑模板）时传 `style` 会直接报错——编辑 prompt 写的是「改什么、留什么」，套骨架会把指令压扁
+- 约 120 单元以内（汉字算 1、英文词算 1）的描述整句套；更长的描述只追加观感后缀，不重复前缀、不压掉你自己的开头
+- 预设自带的负面词只在 `cfg` > 1 时真正生效（默认 1.0 时负条件被乘 0）；结果 meta 的 `style_negative_applied` 如实标注
+- 表在插件根 `styles.json`：加一条风格 = 加一个 `{description, template, negative?, tags?}`，模板必须含 `{prompt}` 且写成一整句（不堆关键词，见 [PROMPTS-CORE.md](./PROMPTS-CORE.md) §1）；未知风格名会报错并列出可用项
+
 文字类需求可直接把版式写进提示词（见 [PROMPTS.md](./PROMPTS.md)）；`qwen_image_2_1_cn`、`qwen_image_2_1_t2i_pe` 属旧模板，需要外部兼容网关（内置直连不覆盖），日常优先用默认模板。
 
 ## 2. 图生图 / 编辑
@@ -211,7 +230,7 @@ image_upscale(input_path="<outputDir>/xxx.png")
 | 首次出图明显较慢（7–20 秒起） | 模型冷加载 | 属于正常现象；连续生成会加快 |
 | 显存被模型占用且未释放 | 模型常驻属于正常现象 | 生成时传 `unload_after=true` 立刻释放；或调 `vramIdleFreeMinutes`（默认 10 分钟，插件拉起的引擎到点自动重启、外部引擎只发 `/free`） |
 | 报「Image gateway unreachable」 | 使用旧模板（`*_pe` / `cn` / `vnccs`）但未安装网关 | 文生图/编辑改回 `generationBackend=auto`；旧模板需要兼容网关 |
-| CUDA/显存不足 | 12 GB 显存运行 2K | 降低至 `tier="standard"`，改选 `lowvram` 模型包，或执行 `comfy(action="control", op="free")` |
+| CUDA/显存不足 | 12 GB 显存跑 2K（`tier="quality"`）或张数过多的参考图 | 按降档阶梯逐级试：`tier="draft"`（1056²、8 步）→ 尺寸降到 1024² → 参考图减到 1 张 → `unload_after=true`；报错文本里会带同一份建议，引擎日志另见 `image_prompt_guide(section="排查")` |
 | 生成新图、未按参考图修改 | 模板为 t2i | 插件会自动切换至编辑模板；显式填写 t2i 时会报错，按提示修改 |
 | 出图没有透明背景 | 未在 prompt 中写明 | 加 `透明背景` / `transparent background` |
 | 放大报「模型文件缺失」 | 引擎升级后目录变了 | `image_setup(action="install", component="upscale")` 重装 |
@@ -224,10 +243,10 @@ image_upscale(input_path="<outputDir>/xxx.png")
 
 | 档位 | 工具数 | 常驻 token（tokA / tokB） | 含什么 |
 |---|---|---|---|
-| `minimal` | 6 | 1276 / 1489 | `image_generate`、`image_prompt_guide`、`image_upscale`、`image_service_status`、`image_setup`、`comfy` |
-| `lean`（默认） | 9 | 2178 / 2541 | standard 减去 `perf`，像素处理 5 件合并为 `image_process`（用 `action` 选 resize / mark_region / flatten_alpha / anim_encode / pose_check） |
-| `standard` | 14 | 2689 / 3134 | minimal + `image_generate_raw`、`image_workflow_inspect` + 像素处理 5 件 + `perf` |
-| `all` | 16 | 2989 / 3493 | standard + `env_probe`、`preflight` |
+| `minimal` | 6 | 1334 / 1556 | `image_generate`、`image_prompt_guide`、`image_upscale`、`image_service_status`、`image_setup`、`comfy` |
+| `lean`（默认） | 9 | 2236 / 2608 | standard 减去 `perf`，像素处理 5 件合并为 `image_process`（用 `action` 选 resize / mark_region / flatten_alpha / anim_encode / pose_check） |
+| `standard` | 14 | 2747 / 3201 | minimal + `image_generate_raw`、`image_workflow_inspect` + 像素处理 5 件 + `perf` |
+| `all` | 16 | 3047 / 3560 | standard + `env_probe`、`preflight` |
 
 口径（估算）：宿主只发 `name + description + parameters`（outputSchema 不发）+ 提示段；tokA = CJK 1.6 / ASCII 4.2 字每 token，tokB 为保守值。
 可随时复测：`npm run tokens`。

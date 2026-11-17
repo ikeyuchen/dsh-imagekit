@@ -52,7 +52,7 @@ const WHITELIST = {
 	// 运行时输出/状态字段（不写进清单，也无法从代码静态取）
 	stateFields: [
 		"versionSource", "installedPack", "targetVersion", "installedVersion", "updateAvailable",
-		"save_error", "outputDir", "gatewayDir",
+		"save_error", "outputDir", "gatewayDir", "workflow_digest", "noise_seed", "style_negative_applied", "elapsed_seconds",
 	],
 	// 历史名称：CHANGELOG / 实现说明里需要提到已移除的东西
 	historical: ["repo_check", "plugin_health", "agent_capacity"],

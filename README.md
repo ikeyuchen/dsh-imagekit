@@ -72,9 +72,9 @@ dsh plugin --profile web add ./dsh-imagekit
 
 | 工具 | 说明 |
 | --- | --- |
-| `image_generate` / `image_generate_raw` | 文生图、参考图改图、任意工作流。整份 API 图可离线直连，模板需要网关。提供 `draft` / `standard` / `quality` 三档，省略 `tier` 时使用 `standard` |
+| `image_generate` / `image_generate_raw` | 文生图、参考图改图、任意工作流。整份 API 图可离线直连，模板需要网关。提供 `draft` / `standard` / `quality` 三档，省略 `tier` 时使用 `standard`；另可选 9 种观感预设（`style`：realistic / anime / product / sticker / film / ink / flat / clean-cel / design-dense），只对文生图生效 |
 | `image_workflow_inspect` | 查看网关模板解析后的 ComfyUI 图 |
-| `image_prompt_guide` | 内置提示词手册，包含选档、分类配方、文字渲染、参考图编辑、放大路由与能力边界；按需返回，手册正文不占常驻上下文，工具声明约 69 tokA |
+| `image_prompt_guide` | 内置提示词手册，包含选档、分类配方、文字渲染、参考图编辑、放大路由与能力边界；按 `section` 按需返回（逗号可并列多节，如 `edit,text`），手册正文不占常驻上下文，工具声明约 82 tokA |
 | `image_upscale` | Real-CUGAN / Real-ESRGAN / waifu2x / RealSR，共 10 个预设，来自上游官方 MIT/BSD 构建，Vulkan 直通 GPU |
 | 像素处理 5 件 | 降采样、区域标记、透明扁平化、动图合成、姿势检查 |
 | `comfy` / `image_service_status` | ComfyUI 引擎启停、自愈与升级 |

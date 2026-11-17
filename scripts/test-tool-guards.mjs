@@ -239,6 +239,20 @@ console.log("\nlib/generate/tools.js — image_generate 参数闸门（离线：
       /is text-to-image and ignores ref_images/
     );
   });
+
+  await check("style 是文生图专用：带参考图（已切编辑模板）时显式拒绝", async () => {
+    await assert.rejects(
+      () => gen.execute({ prompt: "x", style: "anime", ref_images: [FIXTURE] }, {}),
+      /style is text-to-image only/
+    );
+  });
+
+  await check("未知 style → 报错并列出可用风格（不静默当无风格）", async () => {
+    await assert.rejects(
+      () => gen.execute({ prompt: "x", style: "cinematic" }, {}),
+      /Unknown style "cinematic"[\s\S]*Available styles:/
+    );
+  });
 }
 
 console.log("\nlib/engine/index.js — comfy 网关参数校验");
@@ -292,6 +306,25 @@ console.log("\nlib/generate/direct.js — 引擎失败提示翻译");
   await check("无关错误不加提示", async () => {
     assert.equal(engineFailureHint('{"exception_message":"Value not in list: sampler_name"}'), "");
     assert.equal(engineFailureHint(undefined), "");
+  });
+
+  await check("真·显存不足 → 降档阶梯（可执行建议，而不是让调用方猜）", async () => {
+    for (const msg of [
+      '{"exception_message":"CUDA out of memory. Tried to allocate 2.00 GiB"}',
+      '{"exception_type":"torch.OutOfMemoryError","exception_message":"Allocation on device 0 would exceed allowed memory"}',
+      "RuntimeError: Not enough memory, failed to allocate 4096 MB"
+    ]) {
+      const hint = engineFailureHint(msg);
+      assert.match(hint, /ran out of VRAM/, `should flag VRAM for ${msg}`);
+      assert.match(hint, /tier="draft"/);
+      assert.match(hint, /unload_after/);
+    }
+  });
+
+  await check("VBAR 与显存不足同时命中时，按 VBAR 处理（重启，不是降档）", async () => {
+    const hint = engineFailureHint('{"exception_message":"VBAR allocation failed; CUDA out of memory"}');
+    assert.match(hint, /virtual address space is fragmented/);
+    assert.ok(!/tier="draft"/.test(hint));
   });
 }
 
