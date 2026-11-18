@@ -33,6 +33,14 @@ CI 不是强制门禁（私有仓库免费版没有分支保护），真正的�
 - 提示词文档分两层，不互相复制：内置版是 `docs/PROMPTS-CORE.md`（随包分发，由 `image_prompt_guide`
   按需返回，不依赖 DSH 技能）；另一层是探索版 `docs/PROMPTS.md`。新增提示词文件放在 `docs/`，命名为 `PROMPTS*.md`。
 
+## 外部进程（LibreOffice / soffice）
+
+- 用 LibreOffice 转换 docx/pdf 必须设超时；超时后用 `taskkill /PID <pid> /T /F` 结束**进程树**。DSH 的
+  `job_kill` 只结束 pwsh/job 外壳，不会杀 `soffice` 子进程，孤儿进程会继续写盘。
+- headless 调用带独立 profile，避免与常驻实例抢锁：`-env:UserInstallation=file:///C:/.../lo-profile`。
+- 转换输出与临时文件只放 `.verify-cache/`；失败后检查并清理 `lu*.tmp` 与 `.~lock.*#`，不要留着等下次。
+- 教训：2026-11-18 一次 `--convert-to txt:Text` 挂起，临时文件 `lu1404814emx.tmp` 涨到 971 GB，写满 D 盘。
+
 ## 改工具签名或描述时
 
 - 执行 `npm run tokens`，同步 `docs/ARCHITECTURE.md` 与 `docs/USAGE.md` 的 token 数字、`locale/*.json` 的文案，并在下次发布时记进 `CHANGELOG.md`。
